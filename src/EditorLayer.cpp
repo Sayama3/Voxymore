@@ -112,7 +112,7 @@ namespace Voxymore::Editor {
 
             m_Texture->Bind();
             Renderer::Submit(m_TextureShader, m_SquareVertexArray);
-            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(modelPos, glm::quat(glm::radians(modelRot)), modelScale));
+            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale));
 
             Renderer::EndScene();
             m_Framebuffer->Unbind();
@@ -240,21 +240,36 @@ namespace Voxymore::Editor {
             VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Model Component drawing");
             ImGui::Begin("Model Component");
 
-            ImGui::DragFloat3("Position", glm::value_ptr(modelPos));
-            ImGui::DragFloat3("Rotation", glm::value_ptr(modelRot));
-            ImGui::DragFloat3("Scale", glm::value_ptr(modelScale));
+            ImGui::DragFloat3("Position", glm::value_ptr(m_ModelPos));
+            ImGui::DragFloat3("Rotation", glm::value_ptr(m_ModelRot));
+            ImGui::DragFloat3("Scale", glm::value_ptr(m_ModelScale));
 
             ImGui::End();
         }
 
         {
             VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Rendering");
-            ImGui::Begin("Rendering");
-            uint32_t texID = m_Framebuffer->GetColorAttachmentRendererID();
-            static float scale = 1.0f;
-            ImGui::SliderFloat("ImageScale", &scale, 0.0f, 1.0f);
-            ImGui::Image((void*)texID, ImVec2(m_Framebuffer->GetSpecification().Width * scale, m_Framebuffer->GetSpecification().Height * scale), ImVec2{ 0,1 }, ImVec2{1,0});
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+            ImGui::Begin("Viewport");
+
+            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+            glm::uvec2 viewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
+
+            if(m_Framebuffer->GetSpecification().Width > 0 && m_Framebuffer->GetSpecification().Height > 0)
+            {
+                uint32_t texID = m_Framebuffer->GetColorAttachmentRendererID();
+                ImGui::Image((void *) texID, ImVec2(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height), ImVec2{0, 1}, ImVec2{1, 0});
+            }
+
+            if(viewportSize != m_ViewportSize)
+            {
+                m_Framebuffer->Resize(viewportSize.x, viewportSize.y);
+                m_ViewportSize = viewportSize;
+                m_Camera.SetSize(viewportSize.x, viewportSize.y);
+            }
+
             ImGui::End();
+            ImGui::PopStyleVar();
         }
 
     }

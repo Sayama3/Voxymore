@@ -29,9 +29,11 @@ namespace Voxymore::Editor {
 
         PerspectiveCameraController m_Camera;
     private:
-        glm::vec3 modelPos = {0,0,-2};
-        glm::vec3 modelRot = {0,0,0};
-        glm::vec3 modelScale = {1,1,1};
+        glm::uvec2 m_ViewportSize = glm::uvec2(0);
+    private:
+        glm::vec3 m_ModelPos = {0, 0, -2};
+        glm::vec3 m_ModelRot = {0, 0, 0};
+        glm::vec3 m_ModelScale = {1, 1, 1};
     public:
         EditorLayer();
 
