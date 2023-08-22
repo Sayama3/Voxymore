@@ -8,21 +8,23 @@ if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
 endif()
 
 
-set(VoxymoreCore_SHARED_BUILD ON)
 add_subdirectory(lib/VoxymoreCore)
 
-project(VoxyboxProject)
+project(Voxengine VERSION 0.0.1 DESCRIPTION "The Voxymore Game Engine.")
 
-add_executable(Voxybox)
+add_executable(Voxengine
+        src/Voxengine.cpp
+        src/EditorLayer.cpp
+        include/Voxymore/Editor/EditorLayer.hpp
+)
 
 set(CMAKE_CXX_STANDARD 20)
-target_compile_features(Voxybox PUBLIC cxx_std_20)
+target_compile_features(Voxengine PUBLIC cxx_std_20)
 
 include_directories(include)
-add_subdirectory(src)
 add_subdirectory(assets)
 
-target_link_libraries(Voxybox PUBLIC Voxymore::Core)
+target_link_libraries(Voxengine PUBLIC Voxymore::Core)
 #target_precompile_headers(Voxybox REUSE_FROM Core)
 #set_target_properties(Voxybox PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
