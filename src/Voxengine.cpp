@@ -8,7 +8,7 @@ namespace Voxymore::Editor {
 
 class Voxengine : public Voxymore::Core::Application {
     public:
-        Voxengine() : Voxymore::Core::Application() {
+        Voxengine() : Voxymore::Core::Application("Voxengine") {
             PushLayer(new EditorLayer());
         }
 
