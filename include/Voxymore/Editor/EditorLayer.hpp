@@ -30,14 +30,14 @@ namespace Voxymore::Editor {
         PerspectiveCameraController m_Camera;
     private:
         glm::uvec2 m_ViewportSize = glm::uvec2(0);
+        bool m_ViewportFocused;
+        bool m_ViewportHovered;
     private:
         glm::vec3 m_ModelPos = {0, 0, -2};
         glm::vec3 m_ModelRot = {0, 0, 0};
         glm::vec3 m_ModelScale = {1, 1, 1};
     public:
         EditorLayer();
-
-        bool UpdateCameraPositionPressed(KeyPressedEvent& event);
 
         virtual void OnUpdate(TimeStep timeStep) override;
 

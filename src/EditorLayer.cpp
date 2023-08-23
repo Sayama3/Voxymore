@@ -8,8 +8,9 @@ namespace Voxymore::Editor {
     EditorLayer::EditorLayer() : Layer("EditorLayer"), m_Camera(Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight())
     {
         VXM_PROFILE_FUNCTION();
-        Application::Get().GetWindow().SetCursorState(m_Camera.IsEnable() ? CursorState::Locked : CursorState::None);
+        Application::Get().GetWindow().SetCursorState(CursorState::None);
         const Window& window = Application::Get().GetWindow();
+        m_Camera.SetEnable(false);
 
 
         m_VertexArray = VertexArray::Create();
@@ -84,19 +85,10 @@ namespace Voxymore::Editor {
 //        std::dynamic_pointer_cast<OpenGLShader>(m_TextureShader)->Unbind();
     }
 
-    bool EditorLayer::UpdateCameraPositionPressed(KeyPressedEvent& event) {
-        VXM_PROFILE_FUNCTION();
-        if (event.GetKeyCode() == KeyCode::KEY_ESCAPE && event.GetRepeatCount() == 0) {
-            VXM_CORE_INFO("Press KEY ESCAPE.");
-            m_Camera.SetEnable(!m_Camera.IsEnable());
-            Application::Get().GetWindow().SetCursorState(m_Camera.IsEnable() ? CursorState::Locked : CursorState::None);
-        }
-        return false;
-    }
-
     void EditorLayer::OnUpdate(TimeStep timeStep) {
         VXM_PROFILE_FUNCTION();
 
+        m_Camera.SetEnable(Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered);
         m_Camera.OnUpdate(timeStep);
 
         {
@@ -252,6 +244,10 @@ namespace Voxymore::Editor {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
             ImGui::Begin("Viewport");
 
+            m_ViewportFocused = ImGui::IsWindowFocused();
+            m_ViewportHovered = ImGui::IsWindowHovered();
+            Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportHovered);
+
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             glm::uvec2 viewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
 
@@ -279,7 +275,8 @@ namespace Voxymore::Editor {
         m_Camera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
-        dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::UpdateCameraPositionPressed, std::placeholders::_1));
+//        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::UpdateCameraEnabled));
+//        dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(EditorLayer::UpdateCameraEnabled));
     }
 
     void EditorLayer::OnAttach() {
@@ -287,9 +284,9 @@ namespace Voxymore::Editor {
         FramebufferSpecification specification(1280, 720);
         m_Framebuffer = Framebuffer::Create(specification);
     }
+
     void EditorLayer::OnDetach() {
         VXM_PROFILE_FUNCTION();
-
     }
 } // Voxymore
 // Editor
