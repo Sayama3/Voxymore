@@ -12,6 +12,7 @@ namespace Voxymore::Editor {
         const Window& window = Application::Get().GetWindow();
         m_Camera.SetEnable(false);
 
+        m_ActiveScene = CreateRef<Scene>();
 
         m_VertexArray = VertexArray::Create();
 
@@ -74,15 +75,15 @@ namespace Voxymore::Editor {
         m_SquareIndexBuffer = IndexBuffer::Create(std::size(squareIndices), squareIndices);
         m_SquareVertexArray->SetIndexBuffer(m_SquareIndexBuffer);
 
-        VXM_INFO("Creat FlatColor Shader");
+        VXM_INFO("Creat FlatColor Material");
         m_Shader = Shader::Create("assets/shaders/FlatColor.glsl");
-        VXM_INFO("Creat Texture Shader");
+        m_Material = CreateRef<Material>(m_Shader);
+
+        VXM_INFO("Creat Texture Material");
         m_TextureShader = Shader::Create("assets/shaders/TextureShader.glsl");
+        m_TextureMaterial = CreateRef<Material>(m_TextureShader);
 
         m_Texture = Texture2D::Create("assets/textures/texture_checker.png");
-//        std::dynamic_pointer_cast<OpenGLShader>(m_TextureShader)->Bind();
-//        std::dynamic_pointer_cast<OpenGLShader>(m_TextureShader)->SetUniformInt("u_Texture", 0);
-//        std::dynamic_pointer_cast<OpenGLShader>(m_TextureShader)->Unbind();
     }
 
     void EditorLayer::OnUpdate(TimeStep timeStep) {
@@ -98,13 +99,16 @@ namespace Voxymore::Editor {
             RenderCommand::Clear();
         }
 
+        m_Texture->Bind();
+
         {
             VXM_PROFILE_SCOPE("Rendering Scene");
             Renderer::BeginScene(m_Camera.GetCamera());
 
-            m_Texture->Bind();
-            Renderer::Submit(m_TextureShader, m_SquareVertexArray);
-            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale));
+            m_ActiveScene->OnUpdate(timeStep);
+
+//            Renderer::Submit(m_TextureShader, m_SquareVertexArray);
+//            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale));
 
             Renderer::EndScene();
             m_Framebuffer->Unbind();
@@ -273,19 +277,25 @@ namespace Voxymore::Editor {
     void EditorLayer::OnEvent(Event& event) {
         VXM_PROFILE_FUNCTION();
         m_Camera.OnEvent(event);
-
-        EventDispatcher dispatcher(event);
-//        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::UpdateCameraEnabled));
-//        dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(EditorLayer::UpdateCameraEnabled));
     }
 
-    void EditorLayer::OnAttach() {
+    void EditorLayer::OnAttach()
+    {
         VXM_PROFILE_FUNCTION();
         FramebufferSpecification specification(1280, 720);
         m_Framebuffer = Framebuffer::Create(specification);
+
+        auto cube = m_ActiveScene->CreateEntity();
+        m_ActiveScene->Reg().emplace<TransformComponent>(cube, m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale);
+        m_ActiveScene->Reg().emplace<MeshComponent>(cube, m_Material, m_VertexArray);
+
+        auto tex = m_ActiveScene->CreateEntity();
+        m_ActiveScene->Reg().emplace<TransformComponent>(tex);
+        m_ActiveScene->Reg().emplace<MeshComponent>(tex, m_TextureMaterial, m_SquareVertexArray);
     }
 
-    void EditorLayer::OnDetach() {
+    void EditorLayer::OnDetach()
+    {
         VXM_PROFILE_FUNCTION();
     }
 } // Voxymore

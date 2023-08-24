@@ -14,8 +14,10 @@ namespace Voxymore::Editor {
     class EditorLayer : public Layer {
     private:
         Ref<Shader> m_Shader;
-        Ref<Shader> m_TextureShader;
+        Ref<Material> m_Material;
         Ref<Texture2D> m_Texture;
+        Ref<Shader> m_TextureShader;
+        Ref<Material> m_TextureMaterial;
 
         Ref<VertexArray> m_VertexArray;
         Ref<VertexBuffer> m_VertexBuffer;
@@ -26,6 +28,8 @@ namespace Voxymore::Editor {
         Ref<IndexBuffer> m_SquareIndexBuffer;
 
         Ref<Framebuffer> m_Framebuffer;
+
+        Ref<Scene> m_ActiveScene;
 
         PerspectiveCameraController m_Camera;
     private:
