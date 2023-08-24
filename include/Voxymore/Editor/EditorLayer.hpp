@@ -30,12 +30,15 @@ namespace Voxymore::Editor {
         Ref<Framebuffer> m_Framebuffer;
 
         Ref<Scene> m_ActiveScene;
+        entt::entity m_CubeEntity;
+        entt::entity m_TextureEntity;
 
         PerspectiveCameraController m_Camera;
     private:
         glm::uvec2 m_ViewportSize = glm::uvec2(0);
         bool m_ViewportFocused;
         bool m_ViewportHovered;
+        bool m_CameraEnable = false;
     private:
         glm::vec3 m_ModelPos = {0, 0, -2};
         glm::vec3 m_ModelRot = {0, 0, 0};

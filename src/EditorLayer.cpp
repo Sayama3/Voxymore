@@ -89,7 +89,15 @@ namespace Voxymore::Editor {
     void EditorLayer::OnUpdate(TimeStep timeStep) {
         VXM_PROFILE_FUNCTION();
 
-        m_Camera.SetEnable(Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered);
+        if(m_CameraEnable && !Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+        {
+            m_Camera.SetEnable(m_CameraEnable = false);
+        }
+        else if(!m_CameraEnable && Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered)
+        {
+            m_Camera.SetEnable(m_CameraEnable = true);
+        }
+
         m_Camera.OnUpdate(timeStep);
 
         {
@@ -239,6 +247,10 @@ namespace Voxymore::Editor {
             ImGui::DragFloat3("Position", glm::value_ptr(m_ModelPos));
             ImGui::DragFloat3("Rotation", glm::value_ptr(m_ModelRot));
             ImGui::DragFloat3("Scale", glm::value_ptr(m_ModelScale));
+            auto& transform = m_ActiveScene->Reg().get<TransformComponent>(m_CubeEntity);
+            transform.Position = m_ModelPos;
+            transform.Rotation = glm::quat(glm::radians(m_ModelRot));
+            transform.Scale = m_ModelScale;
 
             ImGui::End();
         }
@@ -285,13 +297,13 @@ namespace Voxymore::Editor {
         FramebufferSpecification specification(1280, 720);
         m_Framebuffer = Framebuffer::Create(specification);
 
-        auto cube = m_ActiveScene->CreateEntity();
-        m_ActiveScene->Reg().emplace<TransformComponent>(cube, m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale);
-        m_ActiveScene->Reg().emplace<MeshComponent>(cube, m_Material, m_VertexArray);
+        m_CubeEntity = m_ActiveScene->CreateEntity();
+        m_ActiveScene->Reg().emplace<TransformComponent>(m_CubeEntity, m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale);
+        m_ActiveScene->Reg().emplace<MeshComponent>(m_CubeEntity, m_Material, m_VertexArray);
 
-        auto tex = m_ActiveScene->CreateEntity();
-        m_ActiveScene->Reg().emplace<TransformComponent>(tex);
-        m_ActiveScene->Reg().emplace<MeshComponent>(tex, m_TextureMaterial, m_SquareVertexArray);
+        m_TextureEntity = m_ActiveScene->CreateEntity();
+        m_ActiveScene->Reg().emplace<TransformComponent>(m_TextureEntity);
+        m_ActiveScene->Reg().emplace<MeshComponent>(m_TextureEntity, m_TextureMaterial, m_SquareVertexArray);
     }
 
     void EditorLayer::OnDetach()
