@@ -30,8 +30,9 @@ namespace Voxymore::Editor {
         Ref<Framebuffer> m_Framebuffer;
 
         Ref<Scene> m_ActiveScene;
-        entt::entity m_CubeEntity;
-        entt::entity m_TextureEntity;
+        Entity m_CubeEntity;
+        Entity m_TextureEntity;
+        Entity m_ActiveCamera;
 
         PerspectiveCameraController m_Camera;
     private:

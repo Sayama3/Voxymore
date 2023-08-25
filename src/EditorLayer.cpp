@@ -111,14 +111,14 @@ namespace Voxymore::Editor {
 
         {
             VXM_PROFILE_SCOPE("Rendering Scene");
-            Renderer::BeginScene(m_Camera.GetCamera());
+//            Renderer::BeginScene(m_Camera.GetCamera());
 
             m_ActiveScene->OnUpdate(timeStep);
 
 //            Renderer::Submit(m_TextureShader, m_SquareVertexArray);
 //            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale));
 
-            Renderer::EndScene();
+//            Renderer::EndScene();
             m_Framebuffer->Unbind();
         }
     }
@@ -204,9 +204,9 @@ namespace Voxymore::Editor {
 
             if (ImGui::BeginMenuBar())
             {
-                if (ImGui::BeginMenu("Options"))
+                if (ImGui::BeginMenu("File"))
                 {
-                    if(ImGui::MenuItem("Fullscreen", ""))
+                    if(ImGui::MenuItem("Exit", ""))
                     {
                         Application::Get().Close();
                     }
@@ -240,6 +240,7 @@ namespace Voxymore::Editor {
             ImGui::End();
         }
 
+        // TODO: remove as it TEMPORARY.
         {
             VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Model Component drawing");
             ImGui::Begin("Model Component");
@@ -247,11 +248,51 @@ namespace Voxymore::Editor {
             ImGui::DragFloat3("Position", glm::value_ptr(m_ModelPos));
             ImGui::DragFloat3("Rotation", glm::value_ptr(m_ModelRot));
             ImGui::DragFloat3("Scale", glm::value_ptr(m_ModelScale));
-            auto& transform = m_ActiveScene->Reg().get<TransformComponent>(m_CubeEntity);
+            auto& transform = m_CubeEntity.GetComponent<TransformComponent>();
             transform.Position = m_ModelPos;
             transform.Rotation = glm::quat(glm::radians(m_ModelRot));
             transform.Scale = m_ModelScale;
 
+            ImGui::End();
+        }
+
+        // TODO: remove as it TEMPORARY.
+        {
+            VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Camera Entity");
+            ImGui::Begin("Camera Entity");
+            auto& sceneCamera = m_ActiveCamera.GetComponent<CameraComponent>();
+
+            bool isOrthographic = sceneCamera.Camera.IsOrthographic();
+            ImGui::Checkbox("IsOrthographic", &isOrthographic);
+            sceneCamera.Camera.SwitchToPerspective(!isOrthographic);
+
+            if(isOrthographic)
+            {
+                float size = sceneCamera.Camera.GetOrthographicSize();
+                float orthoNearClip = sceneCamera.Camera.GetOrthographicNear();
+                float orthoFarClip = sceneCamera.Camera.GetOrthographicFar();
+
+                ImGui::DragFloat("Size", &size, 0.1f, 0.1f);
+                ImGui::DragFloat("Orthographic Near Clip", &orthoNearClip, 0.01f);
+                ImGui::DragFloat("Orthographic Far Clip", &orthoFarClip, 0.01f);
+                sceneCamera.Camera.SetOrthographic(size, orthoNearClip, orthoFarClip);
+            }
+            else
+            {
+                float fov = sceneCamera.Camera.GetPerspectiveFOVDegree();
+                float perspectiveNearClip = sceneCamera.Camera.GetPerspectiveNear();
+                float perspectiveFarClip = sceneCamera.Camera.GetPerspectiveFar();
+
+                ImGui::DragFloat("Fov", &fov, 0.5f, 1.0f, 179.0f);
+                ImGui::DragFloat("Perspective Near Clip", &perspectiveNearClip, 0.01f);
+                ImGui::DragFloat("Perspective Far Clip", &perspectiveFarClip);
+                sceneCamera.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
+            }
+            ImGui::Separator();
+            auto& transformCamera = m_ActiveCamera.GetComponent<TransformComponent>();
+            ImGui::DragFloat3("Position", glm::value_ptr(transformCamera.Position), 0.1f);
+            ImGui::DragFloat4("Rotation", glm::value_ptr(transformCamera.Rotation), 0.01f);
+            ImGui::DragFloat3("Scale", glm::value_ptr(transformCamera.Scale),0.1f);
             ImGui::End();
         }
 
@@ -278,6 +319,7 @@ namespace Voxymore::Editor {
                 m_Framebuffer->Resize(viewportSize.x, viewportSize.y);
                 m_ViewportSize = viewportSize;
                 m_Camera.SetSize(viewportSize.x, viewportSize.y);
+                m_ActiveScene->SetViewportSize(viewportSize.x, viewportSize.y);
             }
 
             ImGui::End();
@@ -297,13 +339,18 @@ namespace Voxymore::Editor {
         FramebufferSpecification specification(1280, 720);
         m_Framebuffer = Framebuffer::Create(specification);
 
-        m_CubeEntity = m_ActiveScene->CreateEntity();
-        m_ActiveScene->Reg().emplace<TransformComponent>(m_CubeEntity, m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale);
-        m_ActiveScene->Reg().emplace<MeshComponent>(m_CubeEntity, m_Material, m_VertexArray);
+        m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
+        auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
+        cubeTransform.Position = m_ModelPos;
+        cubeTransform.Rotation = glm::quat(glm::radians(m_ModelRot));
+        cubeTransform.Scale = m_ModelScale;
+        m_CubeEntity.AddComponent<MeshComponent>(m_Material, m_VertexArray);
 
-        m_TextureEntity = m_ActiveScene->CreateEntity();
-        m_ActiveScene->Reg().emplace<TransformComponent>(m_TextureEntity);
-        m_ActiveScene->Reg().emplace<MeshComponent>(m_TextureEntity, m_TextureMaterial, m_SquareVertexArray);
+        m_TextureEntity = m_ActiveScene->CreateEntity("Texture Entity");
+        m_TextureEntity.AddComponent<MeshComponent>(m_TextureMaterial, m_SquareVertexArray);
+
+        m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
+        m_ActiveCamera.AddComponent<CameraComponent>();
     }
 
     void EditorLayer::OnDetach()
