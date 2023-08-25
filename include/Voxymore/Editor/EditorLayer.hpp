@@ -6,6 +6,8 @@
 #include "Voxymore/Voxymore.hpp"
 #include "Voxymore/Renderer/Framebuffer.hpp"
 #include "Voxymore/Core/PerspectiveCameraController.hpp"
+#include "Voxymore/Editor/Panels/SceneHierarchyPanel.hpp"
+#include "Voxymore/Editor/Panels/PropertyPanel.hpp"
 
 using namespace Voxymore::Core;
 
@@ -29,6 +31,9 @@ namespace Voxymore::Editor {
 
         Ref<Framebuffer> m_Framebuffer;
 
+    private:
+        SceneHierarchyPanel m_SceneHierarchyPanel;
+        PropertyPanel m_PropertyPanel;
         Ref<Scene> m_ActiveScene;
         Entity m_CubeEntity;
         Entity m_TextureEntity;
@@ -55,6 +60,8 @@ namespace Voxymore::Editor {
 
         virtual void OnAttach() override;
         virtual void OnDetach() override;
+    private:
+        void DrawImGuiViewport();
     };
 
 } // Voxymore

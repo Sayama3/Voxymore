@@ -240,92 +240,9 @@ namespace Voxymore::Editor {
             ImGui::End();
         }
 
-        // TODO: remove as it TEMPORARY.
-        {
-            VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Model Component drawing");
-            ImGui::Begin("Model Component");
+        m_SceneHierarchyPanel.OnImGuiRender();
 
-            ImGui::DragFloat3("Position", glm::value_ptr(m_ModelPos));
-            ImGui::DragFloat3("Rotation", glm::value_ptr(m_ModelRot));
-            ImGui::DragFloat3("Scale", glm::value_ptr(m_ModelScale));
-            auto& transform = m_CubeEntity.GetComponent<TransformComponent>();
-            transform.Position = m_ModelPos;
-            transform.Rotation = glm::quat(glm::radians(m_ModelRot));
-            transform.Scale = m_ModelScale;
-
-            ImGui::End();
-        }
-
-        // TODO: remove as it TEMPORARY.
-        {
-            VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Camera Entity");
-            ImGui::Begin("Camera Entity");
-            auto& sceneCamera = m_ActiveCamera.GetComponent<CameraComponent>();
-
-            bool isOrthographic = sceneCamera.Camera.IsOrthographic();
-            ImGui::Checkbox("IsOrthographic", &isOrthographic);
-            sceneCamera.Camera.SwitchToPerspective(!isOrthographic);
-
-            if(isOrthographic)
-            {
-                float size = sceneCamera.Camera.GetOrthographicSize();
-                float orthoNearClip = sceneCamera.Camera.GetOrthographicNear();
-                float orthoFarClip = sceneCamera.Camera.GetOrthographicFar();
-
-                ImGui::DragFloat("Size", &size, 0.1f, 0.1f);
-                ImGui::DragFloat("Orthographic Near Clip", &orthoNearClip, 0.01f);
-                ImGui::DragFloat("Orthographic Far Clip", &orthoFarClip, 0.01f);
-                sceneCamera.Camera.SetOrthographic(size, orthoNearClip, orthoFarClip);
-            }
-            else
-            {
-                float fov = sceneCamera.Camera.GetPerspectiveFOVDegree();
-                float perspectiveNearClip = sceneCamera.Camera.GetPerspectiveNear();
-                float perspectiveFarClip = sceneCamera.Camera.GetPerspectiveFar();
-
-                ImGui::DragFloat("Fov", &fov, 0.5f, 1.0f, 179.0f);
-                ImGui::DragFloat("Perspective Near Clip", &perspectiveNearClip, 0.01f);
-                ImGui::DragFloat("Perspective Far Clip", &perspectiveFarClip);
-                sceneCamera.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
-            }
-            ImGui::Separator();
-            auto& transformCamera = m_ActiveCamera.GetComponent<TransformComponent>();
-            ImGui::DragFloat3("Position", glm::value_ptr(transformCamera.Position), 0.1f);
-            ImGui::DragFloat4("Rotation", glm::value_ptr(transformCamera.Rotation), 0.01f);
-            ImGui::DragFloat3("Scale", glm::value_ptr(transformCamera.Scale),0.1f);
-            ImGui::End();
-        }
-
-        {
-            VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Rendering");
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-            ImGui::Begin("Viewport");
-
-            m_ViewportFocused = ImGui::IsWindowFocused();
-            m_ViewportHovered = ImGui::IsWindowHovered();
-            Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused || !m_ViewportHovered);
-
-            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            glm::uvec2 viewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
-
-            if(m_Framebuffer->GetSpecification().Width > 0 && m_Framebuffer->GetSpecification().Height > 0)
-            {
-                uint32_t texID = m_Framebuffer->GetColorAttachmentRendererID();
-                ImGui::Image((void *) texID, ImVec2(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height), ImVec2{0, 1}, ImVec2{1, 0});
-            }
-
-            if(viewportSize != m_ViewportSize)
-            {
-                m_Framebuffer->Resize(viewportSize.x, viewportSize.y);
-                m_ViewportSize = viewportSize;
-                m_Camera.SetSize(viewportSize.x, viewportSize.y);
-                m_ActiveScene->SetViewportSize(viewportSize.x, viewportSize.y);
-            }
-
-            ImGui::End();
-            ImGui::PopStyleVar();
-        }
-
+        DrawImGuiViewport();
     }
 
     void EditorLayer::OnEvent(Event& event) {
@@ -351,11 +268,44 @@ namespace Voxymore::Editor {
 
         m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
         m_ActiveCamera.AddComponent<CameraComponent>();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnDetach()
     {
         VXM_PROFILE_FUNCTION();
+    }
+
+    void EditorLayer::DrawImGuiViewport()
+    {
+        VXM_PROFILE_FUNCTION();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+        ImGui::Begin("Viewport");
+
+        m_ViewportFocused = ImGui::IsWindowFocused();
+        m_ViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused || !m_ViewportHovered);
+
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        glm::uvec2 viewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
+
+        if(m_Framebuffer->GetSpecification().Width > 0 && m_Framebuffer->GetSpecification().Height > 0)
+        {
+            uint32_t texID = m_Framebuffer->GetColorAttachmentRendererID();
+            ImGui::Image((void *) texID, ImVec2(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height), ImVec2{0, 1}, ImVec2{1, 0});
+        }
+
+        if(viewportSize != m_ViewportSize)
+        {
+            m_Framebuffer->Resize(viewportSize.x, viewportSize.y);
+            m_ViewportSize = viewportSize;
+            m_Camera.SetSize(viewportSize.x, viewportSize.y);
+            m_ActiveScene->SetViewportSize(viewportSize.x, viewportSize.y);
+        }
+
+        ImGui::End();
+        ImGui::PopStyleVar();
     }
 } // Voxymore
 // Editor

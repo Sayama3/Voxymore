@@ -14,8 +14,12 @@ project(Voxengine VERSION 0.0.1 DESCRIPTION "The Voxymore Game Engine.")
 
 add_executable(Voxengine
         src/Voxengine.cpp
-        src/EditorLayer.cpp
+        src/Editor/EditorLayer.cpp
         include/Voxymore/Editor/EditorLayer.hpp
+        src/Editor/Panels/SceneHierarchyPanel.cpp
+        include/Voxymore/Editor/Panels/SceneHierarchyPanel.hpp
+        src/Editor/Panels/PropertyPanel.cpp
+        include/Voxymore/Editor/Panels/PropertyPanel.hpp
 )
 
 set(CMAKE_CXX_STANDARD 20)
