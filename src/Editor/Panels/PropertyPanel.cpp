@@ -46,6 +46,8 @@ namespace Voxymore::Editor {
             {
                 if(ImGui::TreeNodeEx((void*)typeid(MeshComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Mesh Component"))
                 {
+                    //TODO: show the local path to the mesh & the local path of the material.
+                    //TODO: handle drag and drop from a potential FilePanel
                     ImGui::Text("Cannot modify the mesh component yet.");
                     ImGui::TreePop();
                 }
