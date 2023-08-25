@@ -27,14 +27,17 @@ namespace Voxymore::Editor {
             }
 
             DrawComponent<TransformComponent>("Transform Component", [](TransformComponent& transformComponent){
-                ImGui::DragFloat3("Position", glm::value_ptr(transformComponent.Position), 0.1f);
+                glm::vec3 pos = transformComponent.GetPosition();
+                if(ImGui::DragFloat3("Position", glm::value_ptr(pos), 0.1f))
+                    transformComponent.SetPosition(pos);
 
-                glm::vec3 rot = glm::degrees(glm::eulerAngles(transformComponent.Rotation));
+                glm::vec3 rot = glm::degrees(transformComponent.GetEulerRotation());
                 if (ImGui::DragFloat3("Rotation", glm::value_ptr(rot), 0.1f))
-                    transformComponent.Rotation = glm::quat(glm::radians(rot));
+                    transformComponent.SetEulerRotation(glm::radians(rot));
 
-                ImGui::DragFloat3("Scale", glm::value_ptr(transformComponent.Scale), 0.1f);
-
+                glm::vec3 scale = transformComponent.GetScale();
+                if(ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.1f))
+                    transformComponent.SetScale(scale);
             });
 
             DrawComponent<MeshComponent>("Mesh Component", [](MeshComponent& meshComponent){

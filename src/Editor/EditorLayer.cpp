@@ -258,9 +258,9 @@ namespace Voxymore::Editor {
 
         m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
         auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
-        cubeTransform.Position = m_ModelPos;
-        cubeTransform.Rotation = glm::quat(glm::radians(m_ModelRot));
-        cubeTransform.Scale = m_ModelScale;
+        cubeTransform.SetPosition(m_ModelPos);
+        cubeTransform.SetRotation(glm::quat(glm::radians(m_ModelRot)));
+        cubeTransform.SetScale(m_ModelScale);
         m_CubeEntity.AddComponent<MeshComponent>(m_Material, m_VertexArray);
 
         m_TextureEntity = m_ActiveScene->CreateEntity("Texture Entity");
