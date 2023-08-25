@@ -56,28 +56,52 @@ namespace Voxymore::Editor {
                 if(ImGui::TreeNodeEx((void*)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Camera Component")) {
                     auto &sceneCamera = m_SelectedEntity.GetComponent<CameraComponent>();
 
-                    bool isOrthographic = sceneCamera.Camera.IsOrthographic();
-                    ImGui::Checkbox("IsOrthographic", &isOrthographic);
-                    sceneCamera.Camera.SwitchToPerspective(!isOrthographic);
+                    ImGui::Checkbox("Primary", &sceneCamera.Primary);
+                    ImGui::Checkbox("Fixed Aspect Ratio", &sceneCamera.FixedAspectRatio);
+
+                    const char* projectionTypeStrings[] = {"Perspective", "Orthographic"};
+                    uint8_t isOrthographic = sceneCamera.Camera.IsOrthographic();
+                    const char* currentProjectionTypeString = projectionTypeStrings[isOrthographic];
+                    if(ImGui::BeginCombo("Projection",currentProjectionTypeString))
+                    {
+                        for (int i = 0; i < 2; ++i) {
+                            bool isSelected = isOrthographic == i;
+                            if(ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                            {
+                                currentProjectionTypeString = projectionTypeStrings[i];
+                                sceneCamera.Camera.SwitchToOrthographic(i);
+                            }
+
+                            if(isSelected)
+                            {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+
+//                    if(ImGui::Checkbox("IsOrthographic", &isOrthographic)) sceneCamera.Camera.SwitchToPerspective(!isOrthographic);
 
                     if (isOrthographic) {
                         float size = sceneCamera.Camera.GetOrthographicSize();
                         float orthoNearClip = sceneCamera.Camera.GetOrthographicNear();
                         float orthoFarClip = sceneCamera.Camera.GetOrthographicFar();
 
-                        ImGui::DragFloat("Size", &size, 0.1f, 0.1f);
-                        ImGui::DragFloat("Orthographic Near Clip", &orthoNearClip, 0.01f);
-                        ImGui::DragFloat("Orthographic Far Clip", &orthoFarClip, 0.01f);
-                        sceneCamera.Camera.SetOrthographic(size, orthoNearClip, orthoFarClip);
+                        bool changed = false;
+                        changed |= ImGui::DragFloat("Size", &size, 0.1f, 0.1f);
+                        changed |= ImGui::DragFloat("Near", &orthoNearClip, 0.01f);
+                        changed |= ImGui::DragFloat("Far", &orthoFarClip, 0.01f);
+                        if(changed) sceneCamera.Camera.SetOrthographic(size, orthoNearClip, orthoFarClip);
                     } else {
-                        float fov = sceneCamera.Camera.GetPerspectiveFOVDegree();
+                        float fov = glm::degrees(sceneCamera.Camera.GetPerspectiveVerticalFOV());
                         float perspectiveNearClip = sceneCamera.Camera.GetPerspectiveNear();
                         float perspectiveFarClip = sceneCamera.Camera.GetPerspectiveFar();
 
-                        ImGui::DragFloat("Fov", &fov, 0.5f, 1.0f, 179.0f);
-                        ImGui::DragFloat("Perspective Near Clip", &perspectiveNearClip, 0.01f);
-                        ImGui::DragFloat("Perspective Far Clip", &perspectiveFarClip);
-                        sceneCamera.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
+                        bool changed = false;
+                        changed |= ImGui::DragFloat("Vertical Fov", &fov, 1.0f, 1.0f, 179.0f);
+                        changed |= ImGui::DragFloat("Near", &perspectiveNearClip, 0.01f);
+                        changed |= ImGui::DragFloat("Far", &perspectiveFarClip);
+                        if(changed) sceneCamera.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
                     }
                     ImGui::TreePop();
                 }

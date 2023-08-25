@@ -33,7 +33,6 @@ namespace Voxymore::Editor {
 
     private:
         SceneHierarchyPanel m_SceneHierarchyPanel;
-        PropertyPanel m_PropertyPanel;
         Ref<Scene> m_ActiveScene;
         Entity m_CubeEntity;
         Entity m_TextureEntity;
