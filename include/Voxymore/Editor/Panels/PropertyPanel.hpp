@@ -16,6 +16,19 @@ namespace Voxymore::Editor {
     public:
         void OnImGuiRender();
     private:
+        template<typename T>
+        inline void DrawComponent(const char* name, void(*OnDrawComponent)(T& component))
+        {
+            if (m_SelectedEntity.HasComponent<T>())
+            {
+                if(ImGui::TreeNodeEx((void*)typeid(T).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "%s", name))
+                {
+                    OnDrawComponent(m_SelectedEntity.GetComponent<T>());
+                    ImGui::TreePop();
+                }
+            }
+        }
+    private:
         Entity m_SelectedEntity;
         friend class SceneHierarchyPanel;
     };
