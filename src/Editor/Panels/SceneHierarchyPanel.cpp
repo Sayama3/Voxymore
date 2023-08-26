@@ -33,6 +33,16 @@ namespace Voxymore::Editor {
             m_PropertyPanel.m_SelectedEntity = {};
         }
 
+        // Right click on blank space
+        if(ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+        {
+            if(ImGui::MenuItem("Create Empty Entity"))
+            {
+                m_Context->CreateEntity();
+            }
+            ImGui::EndPopup();
+        }
+
         ImGui::End();
 
         m_PropertyPanel.OnImGuiRender();
@@ -47,16 +57,33 @@ namespace Voxymore::Editor {
         if(entity == m_PropertyPanel.m_SelectedEntity) flags |= ImGuiTreeNodeFlags_Selected;
 
         bool open = ImGui::TreeNodeEx(EntityID, flags, tag.c_str());
+        //TODO: change selected entity on selection changed.
         if(ImGui::IsItemClicked() || ImGui::IsItemActivated())
         {
             m_PropertyPanel.m_SelectedEntity = entity;
         }
-        //TODO: Selection Change
+
+        bool deleteEntity = false;
+        // Right click on blank space
+        if(ImGui::BeginPopupContextItem())
+        {
+            if(ImGui::MenuItem(std::string("Delete '").append(tag).append("'").c_str()))
+            {
+                deleteEntity = true;
+            }
+            ImGui::EndPopup();
+        }
 
         if(open)
         {
-            //TODO: display the parents.
+            //TODO: display the children.
             ImGui::TreePop();
+        }
+
+        if(deleteEntity)
+        {
+            if(m_PropertyPanel.m_SelectedEntity == entity) m_PropertyPanel.m_SelectedEntity = {};
+            m_Context->DestroyEntity(entity);
         }
     }
 } // Voxymore

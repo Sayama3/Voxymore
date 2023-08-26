@@ -45,7 +45,7 @@ namespace Voxymore::Editor {
                 {
                     transformComponent.SetScale(scale);
                 }
-            });
+            }, false);
 
             DrawComponent<MeshComponent>("Mesh Component", [](MeshComponent& meshComponent){
                 ImGui::Text("Cannot modify the mesh component yet.");
@@ -54,6 +54,15 @@ namespace Voxymore::Editor {
             DrawComponent<CameraComponent>("Camera Component", [](CameraComponent& cameraComponent){
                 ImGui::Checkbox("Primary", &cameraComponent.Primary);
                 ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.FixedAspectRatio);
+                if(cameraComponent.FixedAspectRatio)
+                {
+                    ImGui::SameLine();
+                    float ar = cameraComponent.Camera.GetAspectRatio();
+                    if(ImGui::DragFloat("##AspectRatio", &ar, 0.001f))
+                    {
+                        cameraComponent.Camera.SetAspectRatio(ar);
+                    }
+                }
 
                 const char* projectionTypeStrings[] = {"Perspective", "Orthographic"};
                 uint8_t isOrthographic = cameraComponent.Camera.IsOrthographic();
@@ -101,7 +110,26 @@ namespace Voxymore::Editor {
                 }
             });
 
-            //TODO: add a AddComponent button
+            if(ImGui::Button("Add Component")) {
+                ImGui::OpenPopup("AddComponentPopup");
+            }
+            if(ImGui::BeginPopup("AddComponentPopup"))
+            {
+                if(!m_SelectedEntity.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
+                {
+                    auto& newCam = m_SelectedEntity.AddComponent<CameraComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if(!m_SelectedEntity.HasComponent<MeshComponent>() && ImGui::MenuItem("Mesh Component"))
+                {
+                    m_SelectedEntity.AddComponent<MeshComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+
         }
         else
         {

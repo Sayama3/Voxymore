@@ -17,15 +17,40 @@ namespace Voxymore::Editor {
         void OnImGuiRender();
     private:
         template<typename T>
-        inline void DrawComponent(const std::string& name, void(*OnDrawComponent)(T& component))
+        inline void DrawComponent(const std::string& name, void(*OnDrawComponent)(T& component), bool canBeDeleted = true)
         {
+            const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
             if (m_SelectedEntity.HasComponent<T>())
             {
-                if(ImGui::TreeNodeEx((void*)typeid(T).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "%s", name.c_str()))
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+                bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, "%s", name.c_str());
+                bool removeComponent = false;
+
+                ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
+                if(ImGui::Button("+", ImVec2(20.0f, 20.0f)))
+                {
+                    ImGui::OpenPopup("ComponentSettings");
+                }
+                if(ImGui::BeginPopup("ComponentSettings"))
+                {
+                    if(canBeDeleted && ImGui::MenuItem("Remove Component"))
+                    {
+                        removeComponent = true;
+                    }
+                    ImGui::EndPopup();
+                }
+
+                if(open)
                 {
                     OnDrawComponent(m_SelectedEntity.GetComponent<T>());
                     ImGui::TreePop();
                 }
+
+                if(removeComponent)
+                {
+                    m_SelectedEntity.RemoveComponent<T>();
+                }
+                ImGui::PopStyleVar();
             }
         }
 

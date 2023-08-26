@@ -255,6 +255,7 @@ namespace Voxymore::Editor {
         VXM_PROFILE_FUNCTION();
         FramebufferSpecification specification(1280, 720);
         m_Framebuffer = Framebuffer::Create(specification);
+        m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
 
         m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
         auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
