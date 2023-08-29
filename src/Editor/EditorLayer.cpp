@@ -89,6 +89,18 @@ namespace Voxymore::Editor {
     void EditorLayer::OnUpdate(TimeStep timeStep) {
         VXM_PROFILE_FUNCTION();
 
+        // Resize
+        m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+
+        if (FramebufferSpecification spec = m_Framebuffer->GetSpecification();
+                m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero sized framebuffer is invalid
+                (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+        {
+            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_Camera.SetSize(m_ViewportSize.x, m_ViewportSize.y);
+//            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        }
+
         if(m_CameraEnable && !Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
         {
             m_Camera.SetEnable(m_CameraEnable = false);
@@ -261,6 +273,7 @@ namespace Voxymore::Editor {
     {
         VXM_PROFILE_FUNCTION();
         FramebufferSpecification specification(1280, 720);
+        m_ViewportSize = {specification.Width, specification.Height};
         m_Framebuffer = Framebuffer::Create(specification);
         m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
 
@@ -278,6 +291,10 @@ namespace Voxymore::Editor {
         m_ActiveCamera.AddComponent<CameraComponent>();
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        auto& imguiLayer = *Application::Get().GetImGuiLayer();
+        imguiLayer.AddFont("assets/fonts/OpenSans/OpenSans-Regular.ttf", 18.0f, FontType::Regular, true);
+        imguiLayer.AddFont("assets/fonts/OpenSans/OpenSans-Bold.ttf", 18.0f, FontType::Bold);
     }
 
     void EditorLayer::OnDetach()
@@ -296,21 +313,11 @@ namespace Voxymore::Editor {
         Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused || !m_ViewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        glm::uvec2 viewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
+        m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
 
-        if(m_Framebuffer->GetSpecification().Width > 0 && m_Framebuffer->GetSpecification().Height > 0)
-        {
-            uint32_t texID = m_Framebuffer->GetColorAttachmentRendererID();
-            ImGui::Image((void *) texID, ImVec2(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height), ImVec2{0, 1}, ImVec2{1, 0});
-        }
 
-        if(viewportSize != m_ViewportSize)
-        {
-            m_Framebuffer->Resize(viewportSize.x, viewportSize.y);
-            m_ViewportSize = viewportSize;
-            m_Camera.SetSize(viewportSize.x, viewportSize.y);
-            m_ActiveScene->SetViewportSize(viewportSize.x, viewportSize.y);
-        }
+        uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+        ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
         ImGui::End();
         ImGui::PopStyleVar();
