@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
+add_subdirectory(fonts)
+
 configure_file(textures/texture_checker.png textures/texture_checker.png COPYONLY)
 
 configure_file(shaders/FlatColor.glsl shaders/FlatColor.glsl COPYONLY)
