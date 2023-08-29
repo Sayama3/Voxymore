@@ -6,6 +6,7 @@
 
 #include <Voxymore/Voxymore.hpp>
 #include <imgui.h>
+#include "imgui_internal.h"
 
 using namespace Voxymore::Core;
 
@@ -16,18 +17,28 @@ namespace Voxymore::Editor {
     public:
         void OnImGuiRender();
     private:
-        template<typename T>
-        inline void DrawComponent(const std::string& name, void(*OnDrawComponent)(T& component), bool canBeDeleted = true)
+        template<typename T, typename UIFunction>
+        inline static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool canBeDeleted = true)
         {
-            const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
-            if (m_SelectedEntity.HasComponent<T>())
+            const ImGuiTreeNodeFlags treeNodeFlags =
+                    ImGuiTreeNodeFlags_DefaultOpen |
+                    ImGuiTreeNodeFlags_AllowItemOverlap |
+                    ImGuiTreeNodeFlags_SpanAvailWidth |
+                    ImGuiTreeNodeFlags_FramePadding |
+                    ImGuiTreeNodeFlags_Framed;
+            if (entity.HasComponent<T>())
             {
+                auto& component = entity.GetComponent<T>();
+                ImVec2 contentAvailable = ImGui::GetContentRegionAvail();
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+                float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                ImGui::Separator();
                 bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, "%s", name.c_str());
-                bool removeComponent = false;
+                ImGui::PopStyleVar();
 
-                ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
-                if(ImGui::Button("+", ImVec2(20.0f, 20.0f)))
+                bool removeComponent = false;
+                ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
+                if(ImGui::Button("+", ImVec2(lineHeight, lineHeight)))
                 {
                     ImGui::OpenPopup("ComponentSettings");
                 }
@@ -42,17 +53,19 @@ namespace Voxymore::Editor {
 
                 if(open)
                 {
-                    OnDrawComponent(m_SelectedEntity.GetComponent<T>());
+                    uiFunction(component);
                     ImGui::TreePop();
                 }
 
                 if(removeComponent)
                 {
-                    m_SelectedEntity.RemoveComponent<T>();
+                    entity.RemoveComponent<T>();
                 }
-                ImGui::PopStyleVar();
             }
+
         }
+
+        void DrawComponents();
 
         inline static bool DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
         {

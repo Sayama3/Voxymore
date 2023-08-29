@@ -52,8 +52,7 @@ namespace Voxymore::Editor {
     {
         auto& tag = entity.GetComponent<TagComponent>().Tag;
         void* EntityID = (void*)(uint64_t)(uint32_t)entity;
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
         if(entity == m_PropertyPanel.m_SelectedEntity) flags |= ImGuiTreeNodeFlags_Selected;
 
         bool open = ImGui::TreeNodeEx(EntityID, flags, tag.c_str());

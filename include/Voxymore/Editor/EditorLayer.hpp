@@ -61,6 +61,7 @@ namespace Voxymore::Editor {
         virtual void OnDetach() override;
     private:
         void DrawImGuiViewport();
+        void RenderDockspace();
     };
 
 } // Voxymore
