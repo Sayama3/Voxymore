@@ -65,6 +65,12 @@ namespace Voxymore::Editor {
         void RenderDockspace();
 
         void RenderMenuBar();
+        bool OnKeyPressed(KeyPressedEvent& e);
+
+        void CreateNewScene();
+        void SaveSceneAs();
+        void SaveScene();
+        void OpenScene();
     };
 
 } // Voxymore

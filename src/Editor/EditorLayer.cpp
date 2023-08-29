@@ -265,6 +265,8 @@ namespace Voxymore::Editor {
     void EditorLayer::OnEvent(Event& event) {
         VXM_PROFILE_FUNCTION();
         m_Camera.OnEvent(event);
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     }
 
     void EditorLayer::OnAttach()
@@ -324,62 +326,116 @@ namespace Voxymore::Editor {
     {
         if(ImGui::MenuItem("New", "Ctr+N"))
         {
-            m_FilePath = "";
-            m_ActiveScene = CreateRef<Scene>();
-            m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+            CreateNewScene();
         }
 
         if(ImGui::MenuItem("Open...", "Ctr+O"))
         {
-            std::string file = FileDialogs::OpenFile({"Voxymore Scene (*.vxm)", "*.vxm"});
-            if(!file.empty())
-            {
-                m_FilePath = file;
-                m_ActiveScene = CreateRef<Scene>();
-                m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-                m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-                SceneSerializer serializer(m_ActiveScene);
-                serializer.Deserialize(m_FilePath);
-            }
+            OpenScene();
         }
 
         if(ImGui::MenuItem("Save as...", "Ctr+Shift+S"))
         {
-            std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
-            if(!file.empty())
-            {
-                if(!file.ends_with(".vxm")) file.append(".vxm");
-                m_FilePath = file;
-                SceneSerializer serializer(m_ActiveScene);
-                serializer.Serialize(m_FilePath);
-            }
+            SaveSceneAs();
         }
 
         if(ImGui::MenuItem("Save", "Ctr+S"))
         {
-            if(!m_FilePath.empty())
-            {
-                SceneSerializer serializer(m_ActiveScene);
-                serializer.Serialize(m_FilePath);
-            }
-            else
-            {
-                std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
-                if(!file.empty())
-                {
-                    if(!file.ends_with(".vxm")) file.append(".vxm");
-                    m_FilePath = file;
-                    SceneSerializer serializer(m_ActiveScene);
-                    serializer.Serialize(m_FilePath);
-                }
-            }
+            SaveScene();
         }
 
         if(ImGui::MenuItem("Exit", "Alt+F4"))
         {
             Application::Get().Close();
+        }
+    }
+
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+    {
+        if(e.GetRepeatCount() > 0) return false;
+
+        bool control = Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_CONTROL);
+        if(!control) return false;
+
+        switch (e.GetKeyCode()) {
+            case KeyCode::KEY_S:
+            {
+                bool shift = Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_SHIFT);
+                if(shift)
+                {
+                    SaveSceneAs();
+                }
+                else
+                {
+                    SaveScene();
+                }
+
+                break;
+            }
+            case KeyCode::KEY_N:
+            {
+                CreateNewScene();
+                break;
+            }
+            case KeyCode::KEY_O:
+            {
+                OpenScene();
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        VXM_CORE_TRACE("Save Scene As");
+        std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
+        if(!file.empty())
+        {
+            if(!file.ends_with(".vxm")) file.append(".vxm");
+            m_FilePath = file;
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(m_FilePath);
+        }
+    }
+
+    void EditorLayer::CreateNewScene()
+    {
+        VXM_CORE_TRACE("Create New Scene");
+        m_FilePath = "";
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::SaveScene()
+    {
+        if(!m_FilePath.empty())
+        {
+            VXM_CORE_TRACE("Save Scene");
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(m_FilePath);
+        }
+        else
+        {
+            SaveSceneAs();
+        }
+    }
+
+    void EditorLayer::OpenScene()
+    {
+        VXM_CORE_TRACE("Open Scene");
+        std::string file = FileDialogs::OpenFile({"Voxymore Scene (*.vxm)", "*.vxm"});
+        if(!file.empty())
+        {
+            CreateNewScene();
+            m_FilePath = file;
+
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(m_FilePath);
         }
     }
 } // Voxymore
