@@ -37,6 +37,7 @@ namespace Voxymore::Editor {
         Entity m_CubeEntity;
         Entity m_TextureEntity;
         Entity m_ActiveCamera;
+        std::string m_FilePath;
 
         PerspectiveCameraController m_Camera;
     private:
@@ -62,6 +63,8 @@ namespace Voxymore::Editor {
     private:
         void DrawImGuiViewport();
         void RenderDockspace();
+
+        void RenderMenuBar();
     };
 
 } // Voxymore

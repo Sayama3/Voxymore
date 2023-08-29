@@ -3,6 +3,7 @@
 //
 
 #include "Voxymore/Editor/EditorLayer.hpp"
+#include "Voxymore/Utils/Platform.hpp"
 
 namespace Voxymore::Editor {
     EditorLayer::EditorLayer() : Layer("EditorLayer"), m_Camera(Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight())
@@ -230,10 +231,7 @@ namespace Voxymore::Editor {
         {
             if (ImGui::BeginMenu("File"))
             {
-                if(ImGui::MenuItem("Exit", ""))
-                {
-                    Application::Get().Close();
-                }
+                RenderMenuBar();
                 ImGui::EndMenu();
             }
 
@@ -315,12 +313,74 @@ namespace Voxymore::Editor {
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
 
-
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
         ImGui::End();
         ImGui::PopStyleVar();
+    }
+
+    void EditorLayer::RenderMenuBar()
+    {
+        if(ImGui::MenuItem("New", "Ctr+N"))
+        {
+            m_FilePath = "";
+            m_ActiveScene = CreateRef<Scene>();
+            m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        }
+
+        if(ImGui::MenuItem("Open...", "Ctr+O"))
+        {
+            std::string file = FileDialogs::OpenFile({"Voxymore Scene (*.vxm)", "*.vxm"});
+            if(!file.empty())
+            {
+                m_FilePath = file;
+                m_ActiveScene = CreateRef<Scene>();
+                m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+                m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+                SceneSerializer serializer(m_ActiveScene);
+                serializer.Deserialize(m_FilePath);
+            }
+        }
+
+        if(ImGui::MenuItem("Save as...", "Ctr+Shift+S"))
+        {
+            std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
+            if(!file.empty())
+            {
+                if(!file.ends_with(".vxm")) file.append(".vxm");
+                m_FilePath = file;
+                SceneSerializer serializer(m_ActiveScene);
+                serializer.Serialize(m_FilePath);
+            }
+        }
+
+        if(ImGui::MenuItem("Save", "Ctr+S"))
+        {
+            if(!m_FilePath.empty())
+            {
+                SceneSerializer serializer(m_ActiveScene);
+                serializer.Serialize(m_FilePath);
+            }
+            else
+            {
+                std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
+                if(!file.empty())
+                {
+                    if(!file.ends_with(".vxm")) file.append(".vxm");
+                    m_FilePath = file;
+                    SceneSerializer serializer(m_ActiveScene);
+                    serializer.Serialize(m_FilePath);
+                }
+            }
+        }
+
+        if(ImGui::MenuItem("Exit", "Alt+F4"))
+        {
+            Application::Get().Close();
+        }
     }
 } // Voxymore
 // Editor

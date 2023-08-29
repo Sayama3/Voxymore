@@ -12,6 +12,7 @@ namespace Voxymore::Editor {
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene> &scene)
     {
+        m_PropertyPanel.m_SelectedEntity = {};
         m_Context = scene;
     }
 
