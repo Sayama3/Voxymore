@@ -8,6 +8,7 @@
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/spirv-cross" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/yaml-cpp" vcs="Git" />
   </component>
 </project>

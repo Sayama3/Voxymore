@@ -387,6 +387,7 @@ namespace Voxymore::Editor {
                 break;
             }
         }
+        return false;
     }
 
     void EditorLayer::SaveSceneAs()
