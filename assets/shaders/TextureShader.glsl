@@ -5,16 +5,14 @@ layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec2 a_TexCoord;
 layout(location = 2) in vec4 a_Color;
 
-layout(std140, binding = 0) Camera
+layout(std140, binding = 0) uniform Camera
 {
-    mat4 ViewProjectionMatrix;
-} u_Camera;
-
-layout(push_constant) uniform Transform
+    mat4 u_ViewProjectionMatrix;
+};
+layout(std140, binding = 1) uniform Model
 {
-    mat4 Transform;
-} u_RendererUniforms;
-
+    mat4 u_Transform;
+};
 struct VertexOutput
 {
     vec2 TexCoord;
@@ -24,8 +22,7 @@ struct VertexOutput
 layout (location = 0) out VertexOutput Output;
 
 void main() {
-    gl_Position = u_Camera.ViewProjectionMatrix * u_RendererUniforms.Transform * vec4(a_Position, 1.0);
-    v_Position = (u_Camera.ViewProjectionMatrix * u_RendererUniforms.Transform * vec4(a_Position, 1.0)).xyz;
+    gl_Position = u_ViewProjectionMatrix * u_Transform * vec4(a_Position, 1.0);
     Output.TexCoord = a_TexCoord;
 }
 
