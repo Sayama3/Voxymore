@@ -352,8 +352,9 @@ namespace Voxymore::Editor {
     {
         if(e.GetRepeatCount() > 0) return false;
 
-        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::LeftControl);
-        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::LeftShift);
+        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+        bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
 
         switch (e.GetKeyCode()) {
             case Key::S:
