@@ -5,6 +5,7 @@
 #pragma once
 #include "Voxymore/Voxymore.hpp"
 #include "Voxymore/Renderer/Framebuffer.hpp"
+#include "Voxymore/Renderer/EditorCamera.hpp"
 #include "Voxymore/Core/PerspectiveCameraController.hpp"
 #include "Voxymore/Editor/Panels/SceneHierarchyPanel.hpp"
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
@@ -75,7 +76,7 @@ namespace Voxymore::Editor {
         Entity m_ActiveCamera;
         std::string m_FilePath;
 
-        PerspectiveCameraController m_Camera;
+        EditorCamera m_EditorCamera;
     private:
         glm::uvec2 m_ViewportSize = glm::uvec2(0);
         bool m_ViewportFocused;

@@ -8,12 +8,11 @@
 
 
 namespace Voxymore::Editor {
-    EditorLayer::EditorLayer() : Layer("EditorLayer"), m_Camera(Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight())
+    EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(60.0f, (float)Application::Get().GetWindow().GetWidth()/ (float)Application::Get().GetWindow().GetHeight(), 0.1f, 1000.0f)
     {
         VXM_PROFILE_FUNCTION();
         Application::Get().GetWindow().SetCursorState(CursorState::None);
         const Window& window = Application::Get().GetWindow();
-        m_Camera.SetEnable(false);
 
         m_ActiveScene = CreateRef<Scene>();
 
@@ -100,40 +99,33 @@ namespace Voxymore::Editor {
                 (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-            m_Camera.SetSize(m_ViewportSize.x, m_ViewportSize.y);
-//            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
-        if(m_CameraEnable && !Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
-        {
-            m_Camera.SetEnable(m_CameraEnable = false);
-        }
-        else if(!m_CameraEnable && Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered)
-        {
-            m_Camera.SetEnable(m_CameraEnable = true);
-        }
+//        if(m_CameraEnable && !Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+//        {
+//            m_Camera.SetEnable(m_CameraEnable = false);
+//        }
+//        else if(!m_CameraEnable && Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered)
+//        {
+//            m_Camera.SetEnable(m_CameraEnable = true);
+//        }
 
-        m_Camera.OnUpdate(timeStep);
+        m_EditorCamera.OnUpdate(timeStep);
 
         {
             VXM_PROFILE_SCOPE("Rendering Preparation.");
             m_Framebuffer->Bind();
             RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             RenderCommand::Clear();
+            m_Texture->Bind();
         }
-
-        m_Texture->Bind();
 
         {
             VXM_PROFILE_SCOPE("Rendering Scene");
-//            Renderer::BeginScene(m_Camera.GetCamera());
 
-            m_ActiveScene->OnUpdate(timeStep);
-
-//            Renderer::Submit(m_TextureShader, m_SquareVertexArray);
-//            Renderer::Submit(m_Shader, m_VertexArray, Math::TRS(m_ModelPos, glm::quat(glm::radians(m_ModelRot)), m_ModelScale));
-
-//            Renderer::EndScene();
+            m_ActiveScene->OnUpdateEditor(timeStep, m_EditorCamera);
+//            m_ActiveScene->OnUpdateRuntime(timeStep);
             m_Framebuffer->Unbind();
         }
     }
@@ -266,7 +258,7 @@ namespace Voxymore::Editor {
 
     void EditorLayer::OnEvent(Event& event) {
         VXM_PROFILE_FUNCTION();
-        m_Camera.OnEvent(event);
+        m_EditorCamera.OnEvent(event);
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     }
@@ -313,6 +305,8 @@ namespace Voxymore::Editor {
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+        m_EditorCamera.SetViewportFocused(m_ViewportFocused);
+        m_EditorCamera.SetViewportHovered(m_ViewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
@@ -358,11 +352,11 @@ namespace Voxymore::Editor {
     {
         if(e.GetRepeatCount() > 0) return false;
 
-        bool control = Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_CONTROL);
-        bool shift = Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_SHIFT);
+        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::LeftControl);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::LeftShift);
 
         switch (e.GetKeyCode()) {
-            case KeyCode::KEY_S:
+            case Key::S:
             {
                 if(control)
                 {
@@ -375,37 +369,37 @@ namespace Voxymore::Editor {
 
                 break;
             }
-            case KeyCode::KEY_N:
+            case Key::N:
             {
                 if(control) CreateNewScene();
                 break;
             }
-            case KeyCode::KEY_O:
+            case Key::O:
             {
                 if(control) OpenScene();
                 break;
             }
-            case KeyCode::KEY_Q:
+            case Key::Q:
             {
                 m_GizmoOperation = GizmoOperation::NONE;
                 break;
             }
-            case KeyCode::KEY_W:
+            case Key::W:
             {
                 m_GizmoOperation = GizmoOperation::TRANSLATE;
                 break;
             }
-            case KeyCode::KEY_E:
+            case Key::E:
             {
                 m_GizmoOperation = GizmoOperation::ROTATE;
                 break;
             }
-            case KeyCode::KEY_R:
+            case Key::R:
             {
                 m_GizmoOperation = GizmoOperation::SCALE;
                 break;
             }
-            case KeyCode::KEY_T:
+            case Key::T:
             {
                 m_GizmoOperation = GizmoOperation::UNIVERSAL;
                 break;
@@ -480,19 +474,23 @@ namespace Voxymore::Editor {
             auto pos = ImGui::GetWindowPos();
             ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
 
-            // Camera
-            Entity cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-            const auto& cameraComponent = cameraEntity.GetComponent<CameraComponent>();
-            const auto& transformComponent = cameraEntity.GetComponent<TransformComponent>();
+            // Runtime Camera
+//            Entity cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+//            const auto& cameraComponent = cameraEntity.GetComponent<CameraComponent>();
+//            const auto& transformComponent = cameraEntity.GetComponent<TransformComponent>();
+//
+//            const glm::mat4 projectionMatrix = cameraComponent.Camera.GetProjectionMatrix();
+//            const glm::mat4 viewMatrix = glm::inverse(transformComponent.GetTransform());
 
-            const glm::mat4 projectionMatrix = cameraComponent.Camera.GetProjectionMatrix();
-            const glm::mat4 viewMatrix = glm::inverse(transformComponent.GetTransform());
+            // Editor Camera
+            const glm::mat4 projectionMatrix = m_EditorCamera.GetProjectionMatrix();
+            const glm::mat4& viewMatrix = m_EditorCamera.GetViewMatrix();
 
             // Selected Entity
             auto& tc = selectedEntity.GetComponent<TransformComponent>();
             glm::mat4 modelMatrix = tc.GetTransform();
 
-            bool isSnapping = (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_CONTROL)) && m_GizmoOperation != GizmoOperation::UNIVERSAL;
+            bool isSnapping = (Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl)) && m_GizmoOperation != GizmoOperation::UNIVERSAL;
 
             float snapValue= m_GizmoOperation == GizmoOperation::TRANSLATE
                              ? m_GizmoTranslationSnapValue
@@ -501,8 +499,8 @@ namespace Voxymore::Editor {
                                : m_GizmoScaleSnapValue;
 
             float snapValues[3] = {snapValue, snapValue, snapValue};
-            ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), static_cast<ImGuizmo::OPERATION>(m_GizmoOperation), static_cast<ImGuizmo::MODE>(m_GizmoMode), glm::value_ptr(modelMatrix), nullptr, isSnapping ? snapValues : nullptr);
-
+            bool manipulate = ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), static_cast<ImGuizmo::OPERATION>(m_GizmoOperation), static_cast<ImGuizmo::MODE>(m_GizmoMode), glm::value_ptr(modelMatrix), nullptr, isSnapping ? snapValues : nullptr);
+            m_EditorCamera.EnableMovement(!manipulate);
             if(ImGuizmo::IsUsing())
             {
                 glm::vec3 scale;
