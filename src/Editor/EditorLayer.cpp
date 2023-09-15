@@ -4,6 +4,8 @@
 
 #include "Voxymore/Editor/EditorLayer.hpp"
 #include "Voxymore/Utils/Platform.hpp"
+#include <ImGuizmo.h>
+
 
 namespace Voxymore::Editor {
     EditorLayer::EditorLayer() : Layer("EditorLayer"), m_Camera(Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight())
@@ -279,9 +281,9 @@ namespace Voxymore::Editor {
 
         m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
         auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
-        cubeTransform.SetPosition(m_ModelPos);
-        cubeTransform.SetRotation(glm::quat(glm::radians(m_ModelRot)));
-        cubeTransform.SetScale(m_ModelScale);
+        cubeTransform.SetPosition({0, 0, -2});
+        cubeTransform.SetRotation(glm::quat(glm::radians(glm::vec3{0, 0, 0})));
+        cubeTransform.SetScale({1, 1, 1});
         m_CubeEntity.AddComponent<MeshComponent>(m_Material, m_VertexArray);
 
         m_TextureEntity = m_ActiveScene->CreateEntity("Texture Entity");
@@ -310,13 +312,15 @@ namespace Voxymore::Editor {
 
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused || !m_ViewportHovered);
+        Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+        DrawGizmos();
 
         ImGui::End();
         ImGui::PopStyleVar();
@@ -355,31 +359,55 @@ namespace Voxymore::Editor {
         if(e.GetRepeatCount() > 0) return false;
 
         bool control = Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_CONTROL);
-        if(!control) return false;
+        bool shift = Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_SHIFT);
 
         switch (e.GetKeyCode()) {
             case KeyCode::KEY_S:
             {
-                bool shift = Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_SHIFT);
-                if(shift)
+                if(control)
                 {
-                    SaveSceneAs();
-                }
-                else
-                {
-                    SaveScene();
+                    if (shift) {
+                        SaveSceneAs();
+                    } else {
+                        SaveScene();
+                    }
                 }
 
                 break;
             }
             case KeyCode::KEY_N:
             {
-                CreateNewScene();
+                if(control) CreateNewScene();
                 break;
             }
             case KeyCode::KEY_O:
             {
-                OpenScene();
+                if(control) OpenScene();
+                break;
+            }
+            case KeyCode::KEY_Q:
+            {
+                m_GizmoOperation = GizmoOperation::NONE;
+                break;
+            }
+            case KeyCode::KEY_W:
+            {
+                m_GizmoOperation = GizmoOperation::TRANSLATE;
+                break;
+            }
+            case KeyCode::KEY_E:
+            {
+                m_GizmoOperation = GizmoOperation::ROTATE;
+                break;
+            }
+            case KeyCode::KEY_R:
+            {
+                m_GizmoOperation = GizmoOperation::SCALE;
+                break;
+            }
+            case KeyCode::KEY_T:
+            {
+                m_GizmoOperation = GizmoOperation::UNIVERSAL;
                 break;
             }
             default:
@@ -437,6 +465,56 @@ namespace Voxymore::Editor {
 
             SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(m_FilePath);
+        }
+    }
+
+    void EditorLayer::DrawGizmos()
+    {
+        Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        if(selectedEntity)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+
+            auto size = ImGui::GetWindowSize();
+            auto pos = ImGui::GetWindowPos();
+            ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
+
+            // Camera
+            Entity cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+            const auto& cameraComponent = cameraEntity.GetComponent<CameraComponent>();
+            const auto& transformComponent = cameraEntity.GetComponent<TransformComponent>();
+
+            const glm::mat4 projectionMatrix = cameraComponent.Camera.GetProjectionMatrix();
+            const glm::mat4 viewMatrix = glm::inverse(transformComponent.GetTransform());
+
+            // Selected Entity
+            auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 modelMatrix = tc.GetTransform();
+
+            bool isSnapping = (Input::IsKeyPressed(KeyCode::KEY_LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::KEY_RIGHT_CONTROL)) && m_GizmoOperation != GizmoOperation::UNIVERSAL;
+
+            float snapValue= m_GizmoOperation == GizmoOperation::TRANSLATE
+                             ? m_GizmoTranslationSnapValue
+                             : m_GizmoOperation == GizmoOperation::ROTATE
+                               ? m_GizmoRotationSnapValue
+                               : m_GizmoScaleSnapValue;
+
+            float snapValues[3] = {snapValue, snapValue, snapValue};
+            ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), static_cast<ImGuizmo::OPERATION>(m_GizmoOperation), static_cast<ImGuizmo::MODE>(m_GizmoMode), glm::value_ptr(modelMatrix), nullptr, isSnapping ? snapValues : nullptr);
+
+            if(ImGuizmo::IsUsing())
+            {
+                glm::vec3 scale;
+                glm::vec3 position;
+                glm::quat rotation;
+
+                Math::DecomposeTransform(modelMatrix, position, rotation, scale);
+
+                tc.SetPosition(position);
+                tc.SetRotation(rotation);
+                tc.SetScale(scale);
+            }
         }
     }
 } // Voxymore

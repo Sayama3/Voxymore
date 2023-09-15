@@ -13,6 +13,42 @@ using namespace Voxymore::Core;
 
 namespace Voxymore::Editor {
 
+    // Fetched from ImGuizmo
+    enum class GizmoOperation
+    {
+        NONE             = 0,
+        TRANSLATE_X      = (1u << 0),
+        TRANSLATE_Y      = (1u << 1),
+        TRANSLATE_Z      = (1u << 2),
+        ROTATE_X         = (1u << 3),
+        ROTATE_Y         = (1u << 4),
+        ROTATE_Z         = (1u << 5),
+        ROTATE_SCREEN    = (1u << 6),
+        SCALE_X          = (1u << 7),
+        SCALE_Y          = (1u << 8),
+        SCALE_Z          = (1u << 9),
+        BOUNDS           = (1u << 10),
+        SCALE_XU         = (1u << 11),
+        SCALE_YU         = (1u << 12),
+        SCALE_ZU         = (1u << 13),
+
+        TRANSLATE = TRANSLATE_X | TRANSLATE_Y | TRANSLATE_Z,
+        ROTATE = ROTATE_X | ROTATE_Y | ROTATE_Z | ROTATE_SCREEN,
+        SCALE = SCALE_X | SCALE_Y | SCALE_Z,
+        SCALEU = SCALE_XU | SCALE_YU | SCALE_ZU, // universal
+        UNIVERSAL = TRANSLATE | ROTATE | SCALEU
+
+    };
+    inline GizmoOperation operator|(GizmoOperation lhs, GizmoOperation rhs)
+    {
+        return static_cast<GizmoOperation>(static_cast<int>(lhs) | static_cast<int>(rhs));
+    }
+    enum class GizmoMode
+    {
+        LOCAL,
+        WORLD
+    };
+
     class EditorLayer : public Layer {
     private:
         Ref<Shader> m_Shader;
@@ -45,10 +81,12 @@ namespace Voxymore::Editor {
         bool m_ViewportFocused;
         bool m_ViewportHovered;
         bool m_CameraEnable = false;
-    private:
-        glm::vec3 m_ModelPos = {0, 0, -2};
-        glm::vec3 m_ModelRot = {0, 0, 0};
-        glm::vec3 m_ModelScale = {1, 1, 1};
+    private: // Gizmo
+        GizmoOperation m_GizmoOperation = GizmoOperation::NONE;
+        GizmoMode m_GizmoMode = GizmoMode::LOCAL;
+        float m_GizmoTranslationSnapValue = 0.5f;
+        float m_GizmoRotationSnapValue = 45.0f;
+        float m_GizmoScaleSnapValue = 0.5f;
     public:
         EditorLayer();
 
@@ -63,6 +101,7 @@ namespace Voxymore::Editor {
     private:
         void DrawImGuiViewport();
         void RenderDockspace();
+        void DrawGizmos();
 
         void RenderMenuBar();
         bool OnKeyPressed(KeyPressedEvent& e);
