@@ -30,6 +30,7 @@ void main() {
 #version 450 core
 
 layout(location = 0) out vec4 o_Color;
+layout(location = 1) out int o_Entity; // -1 = no entity. (for now.)
 
 layout (location = 0) in vec2 v_TexCoord;
 
@@ -38,4 +39,5 @@ layout (binding = 0) uniform sampler2D u_Texture;
 void main() {
     //    o_Color = vec4(v_TexCoord, 0.0, 1.0);
     o_Color = texture(u_Texture, v_TexCoord);
+    o_Entity = 51;
 }

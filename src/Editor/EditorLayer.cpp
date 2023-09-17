@@ -267,7 +267,7 @@ namespace Voxymore::Editor {
     {
         VXM_PROFILE_FUNCTION();
         FramebufferSpecification specification(1280, 720);
-        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::Depth};
+        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth};
         m_ViewportSize = {specification.Width, specification.Height};
         m_Framebuffer = Framebuffer::Create(specification);
         m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
@@ -409,7 +409,7 @@ namespace Voxymore::Editor {
             case Key::F:
             {
                 auto selected = m_SceneHierarchyPanel.GetSelectedEntity();
-                if(selected && m_ViewportFocused)
+                if(selected)
                 {
                     auto selectedTc = selected.GetComponent<TransformComponent>();
                     m_EditorCamera.SetFocusTarget(selectedTc.GetPosition());
