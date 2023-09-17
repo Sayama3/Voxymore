@@ -4,6 +4,7 @@
 
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
 #include "imgui_internal.h"
+#include <cstring>
 
 
 namespace Voxymore::Editor {
