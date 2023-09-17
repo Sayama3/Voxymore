@@ -8,7 +8,7 @@
 
 
 namespace Voxymore::Editor {
-    EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(60.0f, (float)Application::Get().GetWindow().GetWidth()/ (float)Application::Get().GetWindow().GetHeight(), 0.1f, 1000.0f)
+    EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(60.0f, 1280.0f/ 720.0f, 0.1f, 1000.0f)
     {
         VXM_PROFILE_FUNCTION();
         Application::Get().GetWindow().SetCursorState(CursorState::None);
@@ -267,6 +267,7 @@ namespace Voxymore::Editor {
     {
         VXM_PROFILE_FUNCTION();
         FramebufferSpecification specification(1280, 720);
+        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::Depth};
         m_ViewportSize = {specification.Width, specification.Height};
         m_Framebuffer = Framebuffer::Create(specification);
         m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
@@ -403,6 +404,16 @@ namespace Voxymore::Editor {
             case Key::T:
             {
                 m_GizmoOperation = GizmoOperation::UNIVERSAL;
+                break;
+            }
+            case Key::F:
+            {
+                auto selected = m_SceneHierarchyPanel.GetSelectedEntity();
+                if(selected && m_ViewportFocused)
+                {
+                    auto selectedTc = selected.GetComponent<TransformComponent>();
+                    m_EditorCamera.SetFocusTarget(selectedTc.GetPosition());
+                }
                 break;
             }
             default:
