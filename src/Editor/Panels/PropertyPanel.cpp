@@ -21,7 +21,7 @@ namespace Voxymore::Editor {
                 const size_t bufferSize = 256;
                 char buffer[bufferSize];
                 memset(buffer, 0, bufferSize);
-                strcpy_s(buffer, tag.c_str());
+                std::strncmp(buffer, tag.c_str(), sizeof(buffer));
                 if(ImGui::InputText("##Tag", buffer, bufferSize))
                 {
                     tag = std::string(buffer);
