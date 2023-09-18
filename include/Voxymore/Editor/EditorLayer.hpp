@@ -44,6 +44,10 @@ namespace Voxymore::Editor {
     {
         return static_cast<GizmoOperation>(static_cast<int>(lhs) | static_cast<int>(rhs));
     }
+    inline GizmoOperation operator&(GizmoOperation lhs, GizmoOperation rhs)
+    {
+        return static_cast<GizmoOperation>(static_cast<int>(lhs) & static_cast<int>(rhs));
+    }
     enum class GizmoMode
     {
         LOCAL,
@@ -67,13 +71,15 @@ namespace Voxymore::Editor {
         Ref<IndexBuffer> m_SquareIndexBuffer;
 
         Ref<Framebuffer> m_Framebuffer;
-
+    private:
+        std::array<glm::vec2, 2> m_ViewportBounds;
     private:
         SceneHierarchyPanel m_SceneHierarchyPanel;
         Ref<Scene> m_ActiveScene;
         Entity m_CubeEntity;
         Entity m_TextureEntity;
         Entity m_ActiveCamera;
+        Entity m_HoveredEntity;
         std::string m_FilePath;
 
         EditorCamera m_EditorCamera;
@@ -103,9 +109,11 @@ namespace Voxymore::Editor {
         void DrawImGuiViewport();
         void RenderDockspace();
         void DrawGizmos();
+        void DrawGizmosWindow();
 
         void RenderMenuBar();
         bool OnKeyPressed(KeyPressedEvent& e);
+        bool OnMousePressed(MouseButtonPressedEvent& e);
 
         void CreateNewScene();
         void SaveSceneAs();

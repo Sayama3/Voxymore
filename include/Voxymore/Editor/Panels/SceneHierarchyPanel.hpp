@@ -23,6 +23,7 @@ namespace Voxymore::Editor {
         void OnImGuiRender();
 
         inline Entity GetSelectedEntity() { return m_PropertyPanel.GetSelectedEntity(); }
+        inline void SetSelectedEntity(Entity entity) {m_PropertyPanel.SetSelectedEntity(entity); }
     private:
         void DrawEntityNode(Entity entity);
     private:

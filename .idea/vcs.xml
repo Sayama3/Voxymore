@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/ImGuizmo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/entt" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/VoxymoreCore/lib/glm" vcs="Git" />

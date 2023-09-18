@@ -118,6 +118,7 @@ namespace Voxymore::Editor {
             m_Framebuffer->Bind();
             RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             RenderCommand::Clear();
+            m_Framebuffer->ClearColorAttachment(1, -1);
             m_Texture->Bind();
         }
 
@@ -126,6 +127,38 @@ namespace Voxymore::Editor {
 
             m_ActiveScene->OnUpdateEditor(timeStep, m_EditorCamera);
 //            m_ActiveScene->OnUpdateRuntime(timeStep);
+
+            {
+                auto [fMouseX, fMouseY] = ImGui::GetMousePos();
+                fMouseX -= m_ViewportBounds[0].x;
+                fMouseY -= m_ViewportBounds[0].y;
+
+                auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+                auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+
+                //Reverse Y because the texture is reversed.
+                fMouseY = viewportHeight - fMouseY;
+
+                int mouseX = fMouseX;
+                int mouseY = fMouseY;
+
+                if(mouseX > 0 && mouseX < viewportWidth
+                && mouseY > 0 && mouseY < viewportHeight)
+                {
+                    int value = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+                    VXM_CORE_TRACE("Pixel Data:; {0}", value);
+                    if(value < 0)
+                    {
+                        m_HoveredEntity = Entity();
+                    }
+                    else{
+                        auto entityId = static_cast<uint32_t>(value);
+                        m_HoveredEntity = Entity(static_cast<entt::entity>(entityId), m_ActiveScene.get());
+                    }
+                    //TODO: pick hovered entity.
+                }
+            }
+
             m_Framebuffer->Unbind();
         }
     }
@@ -261,6 +294,7 @@ namespace Voxymore::Editor {
         m_EditorCamera.OnEvent(event);
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMousePressed));
     }
 
     void EditorLayer::OnAttach()
@@ -302,6 +336,7 @@ namespace Voxymore::Editor {
         VXM_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
         ImGui::Begin("Viewport");
+        auto viewportOffset = ImGui::GetCursorPos();
 
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();
@@ -314,6 +349,15 @@ namespace Voxymore::Editor {
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+        auto windowSize = ImGui::GetWindowSize();
+        auto minBound = ImGui::GetWindowPos();
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+
+        glm::vec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
+        m_ViewportBounds[0] = {minBound.x, minBound.y};
+        m_ViewportBounds[1] = {maxBound.x, maxBound.y};
 
         DrawGizmos();
 
@@ -383,41 +427,69 @@ namespace Voxymore::Editor {
             }
             case Key::Q:
             {
-                m_GizmoOperation = GizmoOperation::NONE;
+                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::NONE;
                 break;
             }
             case Key::W:
             {
-                m_GizmoOperation = GizmoOperation::TRANSLATE;
+                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::TRANSLATE;
                 break;
             }
             case Key::E:
             {
-                m_GizmoOperation = GizmoOperation::ROTATE;
+                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::ROTATE;
                 break;
             }
             case Key::R:
             {
-                m_GizmoOperation = GizmoOperation::SCALE;
+                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::SCALE;
                 break;
             }
             case Key::T:
             {
-                m_GizmoOperation = GizmoOperation::UNIVERSAL;
+                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::UNIVERSAL;
+                break;
+            }
+            case Key::Z:
+            {
+                if(!(control || shift || alt)) m_GizmoMode = m_GizmoMode == GizmoMode::WORLD ? GizmoMode::LOCAL : GizmoMode::WORLD;
                 break;
             }
             case Key::F:
             {
-                auto selected = m_SceneHierarchyPanel.GetSelectedEntity();
-                if(selected)
+                if(!(control || shift || alt))
                 {
-                    auto selectedTc = selected.GetComponent<TransformComponent>();
-                    m_EditorCamera.SetFocusTarget(selectedTc.GetPosition());
+                    auto selected = m_SceneHierarchyPanel.GetSelectedEntity();
+                    if (selected) {
+                        auto selectedTc = selected.GetComponent<TransformComponent>();
+                        m_EditorCamera.SetFocusTarget(selectedTc.GetPosition());
+                    }
                 }
                 break;
             }
             default:
             {
+                break;
+            }
+        }
+        return false;
+    }
+
+    bool EditorLayer::OnMousePressed(MouseButtonPressedEvent& e)
+    {
+        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+        bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
+
+        switch (e.GetMouseButton())
+        {
+            case Mouse::Left:
+            {
+                if (m_ViewportHovered)
+                {
+                    if(!m_SceneHierarchyPanel.GetSelectedEntity().IsValid() || m_GizmoOperation == GizmoOperation::NONE) m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+                    else if (!ImGuizmo::IsOver() && !control && !shift && !alt) m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+                }
                 break;
             }
         }
@@ -476,6 +548,7 @@ namespace Voxymore::Editor {
 
     void EditorLayer::DrawGizmos()
     {
+        DrawGizmosWindow();
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if(selectedEntity)
         {
@@ -526,6 +599,36 @@ namespace Voxymore::Editor {
                 tc.SetScale(scale);
             }
         }
+    }
+
+    void EditorLayer::DrawGizmosWindow()
+    {
+        ImGui::Begin("Gizmo Params");
+
+        if (ImGui::RadioButton("Select", m_GizmoOperation == GizmoOperation::NONE))
+            m_GizmoOperation = GizmoOperation::NONE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Translate", m_GizmoOperation == GizmoOperation::TRANSLATE))
+            m_GizmoOperation = GizmoOperation::TRANSLATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Rotate", m_GizmoOperation == GizmoOperation::ROTATE))
+            m_GizmoOperation = GizmoOperation::ROTATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Scale", m_GizmoOperation == GizmoOperation::SCALE))
+            m_GizmoOperation = GizmoOperation::SCALE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("All", m_GizmoOperation == GizmoOperation::UNIVERSAL))
+            m_GizmoOperation = GizmoOperation::UNIVERSAL;
+
+        if (m_GizmoOperation != GizmoOperation::SCALE)
+        {
+            if (ImGui::RadioButton("Local", m_GizmoMode == GizmoMode::LOCAL))
+                m_GizmoMode = GizmoMode::LOCAL;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("World", m_GizmoMode == GizmoMode::WORLD))
+                m_GizmoMode = GizmoMode::WORLD;
+        }
+        ImGui::End();
     }
 } // Voxymore
 // Editor

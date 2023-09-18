@@ -78,6 +78,7 @@ namespace Voxymore::Editor {
         }
         static bool DrawVec2ControlAdvanced(const std::string& label, glm::vec2& values, float step = 0.1f, float min = 0.0f, float max = 0.0f, const std::string& format = "%.3f", float resetValue = 0.0f, float columnWidth = 100.0f);
         inline Entity GetSelectedEntity() { return m_SelectedEntity; }
+        inline void SetSelectedEntity(Entity entity) {m_SelectedEntity = entity; }
     private:
         Entity m_SelectedEntity;
         friend class SceneHierarchyPanel;

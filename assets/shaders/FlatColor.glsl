@@ -12,16 +12,19 @@ layout(std140, binding = 0) uniform Camera
 layout(std140, binding = 1) uniform Model
 {
     mat4 u_Transform;
+    int u_EntityId;
 };
 
 layout(location = 0) out vec3 v_Position;
 layout(location = 1) out vec4 v_Color;
+layout(location = 2) out flat int v_EntityId;
 
 void main()
 {
     gl_Position = u_ViewProjectionMatrix * u_Transform * vec4(a_Position, 1.0);
     v_Position = (u_ViewProjectionMatrix * u_Transform * vec4(a_Position, 1.0)).xyz;
     v_Color = a_Color;
+    v_EntityId = u_EntityId;
 }
 
 #define __TYPE_FRAGMENT_SHADER__
@@ -32,8 +35,9 @@ layout(location = 1) out int o_Entity; // -1 = no entity.
 
 layout(location = 0) in vec3 v_Position;
 layout(location = 1) in vec4 v_Color;
+layout(location = 2) in flat int v_EntityId;
 
 void main() {
     o_Color = v_Color;
-    o_Entity = 50;
+    o_Entity = v_EntityId;
 }
