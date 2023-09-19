@@ -483,7 +483,7 @@ namespace Voxymore::Editor {
                 if (m_ViewportHovered)
                 {
                     if(!m_SceneHierarchyPanel.GetSelectedEntity().IsValid() || m_GizmoOperation == GizmoOperation::NONE) m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
-                    else if (!ImGuizmo::IsOver() && !control && !shift && !alt) m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+                    else if (!ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !control && !shift && !alt) m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
                 }
                 break;
             }

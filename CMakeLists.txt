@@ -32,3 +32,5 @@ target_link_libraries(Voxengine PUBLIC Voxymore::Core)
 #target_precompile_headers(Voxybox REUSE_FROM Core)
 #set_target_properties(Voxybox PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+target_compile_definitions(Voxengine PUBLIC VXM_USE_SIMPLE_FUNCTION)
+

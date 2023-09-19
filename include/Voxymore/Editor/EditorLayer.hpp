@@ -89,7 +89,7 @@ namespace Voxymore::Editor {
         bool m_ViewportHovered;
         bool m_CameraEnable = false;
     private: // Gizmo
-        GizmoOperation m_GizmoOperation = GizmoOperation::NONE;
+        GizmoOperation m_GizmoOperation = GizmoOperation::TRANSLATE;
         GizmoMode m_GizmoMode = GizmoMode::LOCAL;
         float m_GizmoTranslationSnapValue = 0.5f;
         float m_GizmoRotationSnapValue = 45.0f;
