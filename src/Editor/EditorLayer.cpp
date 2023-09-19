@@ -336,7 +336,11 @@ namespace Voxymore::Editor {
         VXM_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
         ImGui::Begin("Viewport");
-        auto viewportOffset = ImGui::GetCursorPos();
+        auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+        auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+        auto viewportOffset = ImGui::GetWindowPos();
+        m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+        m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();
@@ -349,15 +353,6 @@ namespace Voxymore::Editor {
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-        auto windowSize = ImGui::GetWindowSize();
-        auto minBound = ImGui::GetWindowPos();
-        minBound.x += viewportOffset.x;
-        minBound.y += viewportOffset.y;
-
-        glm::vec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
-        m_ViewportBounds[0] = {minBound.x, minBound.y};
-        m_ViewportBounds[1] = {maxBound.x, maxBound.y};
 
         DrawGizmos();
 
@@ -555,9 +550,7 @@ namespace Voxymore::Editor {
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetDrawlist();
 
-            auto size = ImGui::GetWindowSize();
-            auto pos = ImGui::GetWindowPos();
-            ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
+            ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
             // Runtime Camera
 //            Entity cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
