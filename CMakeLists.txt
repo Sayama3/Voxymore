@@ -34,3 +34,4 @@ target_link_libraries(Voxengine PUBLIC Voxymore::Core)
 
 target_compile_definitions(Voxengine PUBLIC VXM_USE_SIMPLE_FUNCTION)
 
+configure_file(imgui.ini imgui.ini NO_SOURCE_PERMISSIONS COPYONLY)
