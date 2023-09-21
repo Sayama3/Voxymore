@@ -64,6 +64,52 @@ namespace Voxymore::Editor {
             }
 
         }
+        template<typename UIFunction, typename CheckerFunction>
+        inline static void DrawCustomComponent(const std::string& name, size_t hash, Entity entity, CheckerFunction checkerFunction, UIFunction uiFunction, bool canBeDeleted = true)
+        {
+            const ImGuiTreeNodeFlags treeNodeFlags =
+                    ImGuiTreeNodeFlags_DefaultOpen |
+                    ImGuiTreeNodeFlags_AllowItemOverlap |
+                    ImGuiTreeNodeFlags_SpanAvailWidth |
+                    ImGuiTreeNodeFlags_FramePadding |
+                    ImGuiTreeNodeFlags_Framed;
+            if (checkerFunction(entity))
+            {
+                ImVec2 contentAvailable = ImGui::GetContentRegionAvail();
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+                float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                ImGui::Separator();
+                bool open = ImGui::TreeNodeEx((void*)hash, treeNodeFlags, "%s", name.c_str());
+                ImGui::PopStyleVar();
+
+                bool removeComponent = false;
+                ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
+                if(ImGui::Button("+", ImVec2(lineHeight, lineHeight)))
+                {
+                    ImGui::OpenPopup("ComponentSettings");
+                }
+                if(ImGui::BeginPopup("ComponentSettings"))
+                {
+                    if(canBeDeleted && ImGui::MenuItem("Remove Component"))
+                    {
+                        removeComponent = true;
+                    }
+                    ImGui::EndPopup();
+                }
+
+                if(open)
+                {
+                    uiFunction(entity);
+                    ImGui::TreePop();
+                }
+
+                if(removeComponent)
+                {
+                    entity.RemoveComponent<T>();
+                }
+            }
+
+        }
 
         void DrawComponents();
 

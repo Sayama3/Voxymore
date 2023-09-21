@@ -3,6 +3,7 @@
 //
 
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
+#include "Voxymore/Scene/CustomComponent.hpp"
 #include "imgui_internal.h"
 #include <cstring>
 
@@ -277,6 +278,14 @@ namespace Voxymore::Editor {
                 if(changed) cameraComponent.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
             }
         });
+
+        for (const ComponentChecker& cc : ComponentManager::GetComponents())
+        {
+            if(cc.HasComponent(m_SelectedEntity))
+            {
+
+            }
+        }
     }
 
 } // Voxymore
