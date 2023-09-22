@@ -3,6 +3,7 @@
 //
 
 #include "Voxymore/Editor/EditorLayer.hpp"
+#include "Voxymore/Editor/Panels/SystemPanel.hpp"
 #include "Voxymore/Utils/Platform.hpp"
 #include "Voxymore/Scene/SceneManager.hpp"
 #include <ImGuizmo.h>
@@ -170,6 +171,7 @@ namespace Voxymore::Editor {
         RenderDockspace();
 
         m_SceneHierarchyPanel.OnImGuiRender();
+        m_SystemPanel.OnImGuiRender();
 
         DrawImGuiViewport();
     }

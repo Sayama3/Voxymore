@@ -9,6 +9,7 @@
 #include "Voxymore/Core/PerspectiveCameraController.hpp"
 #include "Voxymore/Editor/Panels/SceneHierarchyPanel.hpp"
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
+#include "Voxymore/Editor/Panels/SystemPanel.hpp"
 
 using namespace Voxymore::Core;
 
@@ -75,6 +76,7 @@ namespace Voxymore::Editor {
         std::array<glm::vec2, 2> m_ViewportBounds;
     private:
         SceneHierarchyPanel m_SceneHierarchyPanel;
+        SystemPanel m_SystemPanel;
         Ref<Scene> m_ActiveScene;
         Entity m_CubeEntity;
         Entity m_TextureEntity;

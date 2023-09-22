@@ -20,6 +20,8 @@ add_executable(Voxengine
         include/Voxymore/Editor/Panels/SceneHierarchyPanel.hpp
         src/Editor/Panels/PropertyPanel.cpp
         include/Voxymore/Editor/Panels/PropertyPanel.hpp
+        src/Editor/Panels/SystemPanel.cpp
+        include/Voxymore/Editor/Panels/SystemPanel.hpp
 )
 
 set(CMAKE_CXX_STANDARD 20)
