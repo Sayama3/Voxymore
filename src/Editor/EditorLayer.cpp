@@ -3,7 +3,9 @@
 //
 
 #include "Voxymore/Editor/EditorLayer.hpp"
+#include "Voxymore/Editor/Panels/SystemPanel.hpp"
 #include "Voxymore/Utils/Platform.hpp"
+#include "Voxymore/Scene/SceneManager.hpp"
 #include <ImGuizmo.h>
 
 
@@ -14,7 +16,8 @@ namespace Voxymore::Editor {
         Application::Get().GetWindow().SetCursorState(CursorState::None);
         const Window& window = Application::Get().GetWindow();
 
-        m_ActiveScene = CreateRef<Scene>();
+
+        m_ActiveScene = SceneManager::CreateScene(std::string("MainScene"));
 
         m_VertexArray = VertexArray::Create();
 
@@ -168,6 +171,7 @@ namespace Voxymore::Editor {
         RenderDockspace();
 
         m_SceneHierarchyPanel.OnImGuiRender();
+        m_SystemPanel.OnImGuiRender();
 
         DrawImGuiViewport();
     }

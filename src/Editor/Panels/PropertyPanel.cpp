@@ -3,6 +3,7 @@
 //
 
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
+#include "Voxymore/Scene/CustomComponent.hpp"
 #include "imgui_internal.h"
 #include <cstring>
 
@@ -50,6 +51,15 @@ namespace Voxymore::Editor {
                     ImGui::CloseCurrentPopup();
                 }
 
+                for (const ComponentChecker& cc : ComponentManager::GetComponents())
+                {
+                    if(!cc.HasComponent(m_SelectedEntity) && ImGui::MenuItem(cc.ComponentName.c_str()))
+                    {
+                        cc.AddComponent(m_SelectedEntity);
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+
                 ImGui::EndPopup();
             }
 
@@ -57,7 +67,7 @@ namespace Voxymore::Editor {
         }
         else
         {
-            ImGui::Text("Nothing Selected...");
+            ImGui::Text("No entity selected.");
         }
         ImGui::End();
     }
@@ -277,7 +287,60 @@ namespace Voxymore::Editor {
                 if(changed) cameraComponent.Camera.SetPerspective(glm::radians(fov), perspectiveNearClip, perspectiveFarClip);
             }
         });
+
+        for (const ComponentChecker& cc : ComponentManager::GetComponents())
+        {
+            DrawComponent(m_SelectedEntity, cc);
+        }
     }
+
+    void PropertyPanel::DrawComponent(Entity entity, const ComponentChecker& component, bool canBeDeleted)
+        {
+            const ImGuiTreeNodeFlags treeNodeFlags =
+                    ImGuiTreeNodeFlags_DefaultOpen |
+                    ImGuiTreeNodeFlags_AllowItemOverlap |
+                    ImGuiTreeNodeFlags_SpanAvailWidth |
+                    ImGuiTreeNodeFlags_FramePadding |
+                    ImGuiTreeNodeFlags_Framed;
+            if (component.HasComponent(entity))
+            {
+                ImVec2 contentAvailable = ImGui::GetContentRegionAvail();
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+                float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                ImGui::Separator();
+                bool open = ImGui::TreeNodeEx((void*)component.ComponentHash, treeNodeFlags, "%s", component.ComponentName.c_str());
+                ImGui::PopStyleVar();
+
+                bool removeComponent = false;
+                ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
+                if(ImGui::Button("+", ImVec2(lineHeight, lineHeight)))
+                {
+                    ImGui::OpenPopup("ComponentSettings");
+                }
+                if(ImGui::BeginPopup("ComponentSettings"))
+                {
+                    if(canBeDeleted && ImGui::MenuItem("Remove Component"))
+                    {
+                        removeComponent = true;
+                    }
+                    ImGui::EndPopup();
+                }
+
+                if(open)
+                {
+                    component.OnImGuiRender(entity);
+                    ImGui::TreePop();
+                }
+
+                if(removeComponent)
+                {
+                    component.RemoveComponent(entity);
+                }
+            }
+
+        }
+
+
 
 } // Voxymore
 // Editor
