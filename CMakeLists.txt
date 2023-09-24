@@ -28,7 +28,6 @@ set(CMAKE_CXX_STANDARD 20)
 target_compile_features(Voxengine PUBLIC cxx_std_20)
 
 include_directories(include)
-add_subdirectory(assets)
 
 target_link_libraries(Voxengine PUBLIC Voxymore::Core)
 #target_precompile_headers(Voxybox REUSE_FROM Core)
@@ -37,3 +36,7 @@ target_link_libraries(Voxengine PUBLIC Voxymore::Core)
 target_compile_definitions(Voxengine PUBLIC VXM_USE_SIMPLE_FUNCTION)
 
 configure_file(imgui.ini imgui.ini NO_SOURCE_PERMISSIONS COPYONLY)
+
+message(${CMAKE_BINARY_DIR})
+file(COPY EditorAssets/ DESTINATION ${CMAKE_BINARY_DIR}/EditorAssets/)
+file(COPY EditorShaders/ DESTINATION ${CMAKE_BINARY_DIR}/EditorShaders/)

@@ -81,14 +81,14 @@ namespace Voxymore::Editor {
         m_SquareVertexArray->SetIndexBuffer(m_SquareIndexBuffer);
 
         VXM_INFO("Creat FlatColor Material");
-        m_Shader = Shader::Create("assets/shaders/FlatColor.glsl");
+        m_Shader = Shader::Create({FileSource::EditorShader, "FlatColor.glsl"});
         m_Material = CreateRef<Material>(m_Shader);
 
         VXM_INFO("Creat Texture Material");
-        m_TextureShader = Shader::Create("assets/shaders/TextureShader.glsl");
+        m_TextureShader = Shader::Create({FileSource::EditorShader, "TextureShader.glsl"});
         m_TextureMaterial = CreateRef<Material>(m_TextureShader);
 
-        m_Texture = Texture2D::Create("assets/textures/texture_checker.png");
+        m_Texture = Texture2D::Create({FileSource::EditorAsset, "Textures/texture_checker.png"});
     }
 
     void EditorLayer::OnUpdate(TimeStep timeStep) {
@@ -326,8 +326,8 @@ namespace Voxymore::Editor {
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
         auto& imguiLayer = *Application::Get().GetImGuiLayer();
-        imguiLayer.AddFont("assets/fonts/OpenSans/OpenSans-Regular.ttf", 18.0f, FontType::Regular, true);
-        imguiLayer.AddFont("assets/fonts/OpenSans/OpenSans-Bold.ttf", 18.0f, FontType::Bold);
+        imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Regular.ttf"}, 18.0f, FontType::Regular, true);
+        imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Bold.ttf"}, 18.0f, FontType::Bold);
     }
 
     void EditorLayer::OnDetach()
