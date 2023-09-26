@@ -151,7 +151,7 @@ namespace Voxymore::Editor {
 //            m_Camera.SetEnable(m_CameraEnable = true);
 //        }
 
-        m_EditorCamera.OnUpdate(timeStep);
+        if(m_SceneState == SceneState::Edit) m_EditorCamera.OnUpdate(timeStep);
 
         {
             VXM_PROFILE_SCOPE("Rendering Preparation.");
@@ -165,8 +165,24 @@ namespace Voxymore::Editor {
         {
             VXM_PROFILE_SCOPE("Rendering Scene");
 
-            m_ActiveScene->OnUpdateEditor(timeStep, m_EditorCamera);
-//            m_ActiveScene->OnUpdateRuntime(timeStep);
+            switch (m_SceneState)
+            {
+                case SceneState::Edit:
+                {
+                    m_ActiveScene->OnUpdateEditor(timeStep, m_EditorCamera);
+                    break;
+                }
+                case SceneState::Play:
+                {
+                    m_ActiveScene->OnUpdateRuntime(timeStep);
+                    break;
+                }
+                default:
+                {
+                    VXM_CORE_ASSERT(false, "State {0} not handled yet.", static_cast<int>(m_SceneState));
+                    break;
+                }
+            }
 
             {
                 auto [fMouseX, fMouseY] = ImGui::GetMousePos();
@@ -186,12 +202,12 @@ namespace Voxymore::Editor {
                 && mouseY > 0 && mouseY < viewportHeight)
                 {
                     int value = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-                    VXM_CORE_TRACE("Pixel Data:; {0}", value);
                     if(value < 0)
                     {
                         m_HoveredEntity = Entity();
                     }
-                    else{
+                    else
+                    {
                         auto entityId = static_cast<uint32_t>(value);
                         m_HoveredEntity = Entity(static_cast<entt::entity>(entityId), m_ActiveScene.get());
                     }
@@ -545,7 +561,7 @@ namespace Voxymore::Editor {
 		uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
 		ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-		DrawGizmos();
+        if(m_SceneState == SceneState::Edit) DrawGizmos();
 
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -553,17 +569,24 @@ namespace Voxymore::Editor {
 
 	void EditorLayer::DrawImGuiToolbar()
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 2));
+
+        auto& colors = ImGui::GetStyle().Colors;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(colors[ImGuiCol_ButtonHovered].x, colors[ImGuiCol_ButtonHovered].y, colors[ImGuiCol_ButtonHovered].z, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(colors[ImGuiCol_ButtonActive].x, colors[ImGuiCol_ButtonActive].y, colors[ImGuiCol_ButtonActive].z, 0.5f));
+
 		ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		Ref<Texture2D> imageTex;
 		if(m_SceneState == SceneState::Edit) imageTex = m_PlayTexture;
 		else if(m_SceneState == SceneState::Play) imageTex = m_StopTexture;
-		VXM_CORE_ASSERT(m_SceneState != SceneState::Pause, "We do not handle the Pause state from thee toolbar yet.");
 
 		auto size = ImGui::GetWindowSize();
-		float buttonSize = glm::max(glm::min(size.x, size.y) - 24.0f, 20.0f);
+		float buttonSize = glm::max(glm::min(size.x, size.y) - 4.0f, 20.0f);
 		ImGui::SameLine(ImGui::GetWindowContentRegionMax().x * 0.5f - (buttonSize * 0.5f));
-		if(ImGui::ImageButton((ImTextureID)(uint64_t)imageTex->GetRendererID(), ImVec2(buttonSize, buttonSize)))
+		if(ImGui::ImageButton((ImTextureID)(uint64_t)imageTex->GetRendererID(), ImVec2(buttonSize, buttonSize), ImVec2(0, 0), ImVec2(1,1), 0))
 		{
 			if(m_SceneState == SceneState::Edit)
 			{
@@ -576,6 +599,8 @@ namespace Voxymore::Editor {
 		}
 
 		ImGui::End();
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
 	}
 
     void EditorLayer::DrawGizmos()
