@@ -363,6 +363,7 @@ namespace Voxymore::Editor {
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
+        bool rightClick = Input::IsMouseButtonPressed(Mouse::Right);
 
         switch (e.GetKeyCode()) {
             case Key::S:
@@ -390,37 +391,37 @@ namespace Voxymore::Editor {
             }
             case Key::Q:
             {
-                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::NONE;
+                if(!rightClick && !(control || shift || alt)) m_GizmoOperation = GizmoOperation::NONE;
                 break;
             }
             case Key::W:
             {
-                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::TRANSLATE;
+                if(!rightClick && !(control || shift || alt)) m_GizmoOperation = GizmoOperation::TRANSLATE;
                 break;
             }
             case Key::E:
             {
-                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::ROTATE;
+                if(!rightClick && !(control || shift || alt)) m_GizmoOperation = GizmoOperation::ROTATE;
                 break;
             }
             case Key::R:
             {
-                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::SCALE;
+                if(!rightClick && !(control || shift || alt)) m_GizmoOperation = GizmoOperation::SCALE;
                 break;
             }
             case Key::T:
             {
-                if(!(control || shift || alt)) m_GizmoOperation = GizmoOperation::UNIVERSAL;
+                if(!rightClick && !(control || shift || alt)) m_GizmoOperation = GizmoOperation::UNIVERSAL;
                 break;
             }
             case Key::Z:
             {
-                if(!(control || shift || alt)) m_GizmoMode = m_GizmoMode == GizmoMode::WORLD ? GizmoMode::LOCAL : GizmoMode::WORLD;
+                if(!rightClick && !(control || shift || alt)) m_GizmoMode = m_GizmoMode == GizmoMode::WORLD ? GizmoMode::LOCAL : GizmoMode::WORLD;
                 break;
             }
             case Key::F:
             {
-                if(!(control || shift || alt))
+                if(!rightClick && !(control || shift || alt))
                 {
                     auto selected = m_SceneHierarchyPanel.GetSelectedEntity();
                     if (selected) {
