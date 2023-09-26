@@ -89,7 +89,44 @@ namespace Voxymore::Editor {
         m_TextureMaterial = CreateRef<Material>(m_TextureShader);
 
         m_Texture = Texture2D::Create({FileSource::EditorAsset, "Textures/texture_checker.png"});
-    }
+		m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
+		m_StopTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Stop.png"});
+		m_PauseTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Pause.png"});
+	}
+
+	void EditorLayer::OnAttach()
+	{
+		VXM_PROFILE_FUNCTION();
+		FramebufferSpecification specification(1280, 720);
+		specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth};
+		m_ViewportSize = {specification.Width, specification.Height};
+		m_Framebuffer = Framebuffer::Create(specification);
+		m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
+
+		m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
+		auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
+		cubeTransform.SetPosition({0, 0, -2});
+		cubeTransform.SetRotation(glm::quat(glm::radians(glm::vec3{0, 0, 0})));
+		cubeTransform.SetScale({1, 1, 1});
+		m_CubeEntity.AddComponent<MeshComponent>(m_Material, m_VertexArray);
+
+		m_TextureEntity = m_ActiveScene->CreateEntity("Texture Entity");
+		m_TextureEntity.AddComponent<MeshComponent>(m_TextureMaterial, m_SquareVertexArray);
+
+		m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
+		m_ActiveCamera.AddComponent<CameraComponent>();
+
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+		auto& imguiLayer = *Application::Get().GetImGuiLayer();
+		imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Regular.ttf"}, 18.0f, FontType::Regular, true);
+		imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Bold.ttf"}, 18.0f, FontType::Bold);
+	}
+
+	void EditorLayer::OnDetach()
+	{
+		VXM_PROFILE_FUNCTION();
+	}
 
     void EditorLayer::OnUpdate(TimeStep timeStep) {
         VXM_PROFILE_FUNCTION();
@@ -164,16 +201,6 @@ namespace Voxymore::Editor {
 
             m_Framebuffer->Unbind();
         }
-    }
-
-    void EditorLayer::OnImGuiRender() {
-        VXM_PROFILE_FUNCTION();
-        RenderDockspace();
-
-        m_SceneHierarchyPanel.OnImGuiRender();
-        m_SystemPanel.OnImGuiRender();
-
-        DrawImGuiViewport();
     }
 
     void EditorLayer::RenderDockspace()
@@ -299,69 +326,6 @@ namespace Voxymore::Editor {
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMousePressed));
-    }
-
-    void EditorLayer::OnAttach()
-    {
-        VXM_PROFILE_FUNCTION();
-        FramebufferSpecification specification(1280, 720);
-        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth};
-        m_ViewportSize = {specification.Width, specification.Height};
-        m_Framebuffer = Framebuffer::Create(specification);
-        m_ActiveScene->SetViewportSize(specification.Width, specification.Height);
-
-        m_CubeEntity = m_ActiveScene->CreateEntity("Cube");
-        auto& cubeTransform = m_CubeEntity.GetComponent<TransformComponent>();
-        cubeTransform.SetPosition({0, 0, -2});
-        cubeTransform.SetRotation(glm::quat(glm::radians(glm::vec3{0, 0, 0})));
-        cubeTransform.SetScale({1, 1, 1});
-        m_CubeEntity.AddComponent<MeshComponent>(m_Material, m_VertexArray);
-
-        m_TextureEntity = m_ActiveScene->CreateEntity("Texture Entity");
-        m_TextureEntity.AddComponent<MeshComponent>(m_TextureMaterial, m_SquareVertexArray);
-
-        m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
-        m_ActiveCamera.AddComponent<CameraComponent>();
-
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-        auto& imguiLayer = *Application::Get().GetImGuiLayer();
-        imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Regular.ttf"}, 18.0f, FontType::Regular, true);
-        imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Bold.ttf"}, 18.0f, FontType::Bold);
-    }
-
-    void EditorLayer::OnDetach()
-    {
-        VXM_PROFILE_FUNCTION();
-    }
-
-    void EditorLayer::DrawImGuiViewport()
-    {
-        VXM_PROFILE_FUNCTION();
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-        ImGui::Begin("Viewport");
-        auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-        auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-        auto viewportOffset = ImGui::GetWindowPos();
-        m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-        m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-        m_ViewportFocused = ImGui::IsWindowFocused();
-        m_ViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
-        m_EditorCamera.SetViewportFocused(m_ViewportFocused);
-        m_EditorCamera.SetViewportHovered(m_ViewportHovered);
-
-        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
-
-        uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-        ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-        DrawGizmos();
-
-        ImGui::End();
-        ImGui::PopStyleVar();
     }
 
     void EditorLayer::RenderMenuBar()
@@ -545,6 +509,74 @@ namespace Voxymore::Editor {
         }
     }
 
+	void EditorLayer::OnImGuiRender() {
+		VXM_PROFILE_FUNCTION();
+		RenderDockspace();
+
+		m_SceneHierarchyPanel.OnImGuiRender();
+		m_SystemPanel.OnImGuiRender();
+
+		DrawImGuiViewport();
+
+		DrawImGuiToolbar();
+	}
+
+	void EditorLayer::DrawImGuiViewport()
+	{
+		VXM_PROFILE_FUNCTION();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+		ImGui::Begin("Viewport");
+		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+		auto viewportOffset = ImGui::GetWindowPos();
+		m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_ViewportHovered = ImGui::IsWindowHovered();
+		Application::Get().GetImGuiLayer()->SetBlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+		m_EditorCamera.SetViewportFocused(m_ViewportFocused);
+		m_EditorCamera.SetViewportHovered(m_ViewportHovered);
+
+		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		m_ViewportSize = glm::uvec2(static_cast<uint32_t>(viewportPanelSize.x), static_cast<uint32_t>(viewportPanelSize.y));
+
+		uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+		ImGui::Image(reinterpret_cast<void*>(textureID), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+		DrawGizmos();
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::DrawImGuiToolbar()
+	{
+		ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		Ref<Texture2D> imageTex;
+		if(m_SceneState == SceneState::Edit) imageTex = m_PlayTexture;
+		else if(m_SceneState == SceneState::Play) imageTex = m_StopTexture;
+		VXM_CORE_ASSERT(m_SceneState != SceneState::Pause, "We do not handle the Pause state from thee toolbar yet.");
+
+		auto size = ImGui::GetWindowSize();
+		float buttonSize = glm::max(glm::min(size.x, size.y) - 24.0f, 20.0f);
+		ImGui::SameLine(ImGui::GetWindowContentRegionMax().x * 0.5f - (buttonSize * 0.5f));
+		if(ImGui::ImageButton((ImTextureID)(uint64_t)imageTex->GetRendererID(), ImVec2(buttonSize, buttonSize)))
+		{
+			if(m_SceneState == SceneState::Edit)
+			{
+				OnScenePlay();
+			}
+			else if(m_SceneState == SceneState::Play)
+			{
+				OnSceneStop();
+			}
+		}
+
+		ImGui::End();
+	}
+
     void EditorLayer::DrawGizmos()
     {
         DrawGizmosWindow();
@@ -627,5 +659,15 @@ namespace Voxymore::Editor {
         }
         ImGui::End();
     }
+
+	void EditorLayer::OnScenePlay()
+	{
+		m_SceneState = SceneState::Play;
+	}
+
+	void EditorLayer::OnSceneStop()
+	{
+		m_SceneState = SceneState::Edit;
+	}
 } // Voxymore
 // Editor

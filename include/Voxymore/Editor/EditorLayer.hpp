@@ -55,6 +55,13 @@ namespace Voxymore::Editor {
         WORLD
     };
 
+	enum class SceneState
+	{
+		Edit = 0,
+		Play = 1,
+		Pause = 2,
+	};
+
     class EditorLayer : public Layer {
     private:
         Ref<Shader> m_Shader;
@@ -84,7 +91,12 @@ namespace Voxymore::Editor {
         Entity m_HoveredEntity;
         std::string m_FilePath;
 
+		// Editor.
         EditorCamera m_EditorCamera;
+		SceneState m_SceneState = SceneState::Edit;
+		Ref<Texture2D> m_PlayTexture;
+		Ref<Texture2D> m_StopTexture;
+		Ref<Texture2D> m_PauseTexture;
     private:
         glm::uvec2 m_ViewportSize = glm::uvec2(0);
         bool m_ViewportFocused;
@@ -112,6 +124,7 @@ namespace Voxymore::Editor {
         void RenderDockspace();
         void DrawGizmos();
         void DrawGizmosWindow();
+        void DrawImGuiToolbar();
 
         void RenderMenuBar();
         bool OnKeyPressed(KeyPressedEvent& e);
@@ -121,6 +134,9 @@ namespace Voxymore::Editor {
         void SaveSceneAs();
         void SaveScene();
         void OpenScene();
+
+		void OnScenePlay();
+		void OnSceneStop();
     };
 
 } // Voxymore
