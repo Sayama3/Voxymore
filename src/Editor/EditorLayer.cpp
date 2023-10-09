@@ -6,6 +6,7 @@
 #include "Voxymore/Editor/Panels/SystemPanel.hpp"
 #include "Voxymore/Utils/Platform.hpp"
 #include "Voxymore/Scene/SceneManager.hpp"
+#include "Voxymore/Scene/ModelComponent.hpp"
 #include <ImGuizmo.h>
 
 
@@ -82,16 +83,20 @@ namespace Voxymore::Editor {
 
         VXM_INFO("Creat FlatColor Material");
         m_Shader = Shader::Create({FileSource::EditorShader, "FlatColor.glsl"});
+//        ShaderLibrary::Add("FlatColor", m_Shader);
         m_Material = CreateRef<Material>(m_Shader);
 
         VXM_INFO("Creat Texture Material");
         m_TextureShader = Shader::Create({FileSource::EditorShader, "TextureShader.glsl"});
         m_TextureMaterial = CreateRef<Material>(m_TextureShader);
+//        ShaderLibrary::Add("TextureShader", m_TextureShader);
 
         m_Texture = Texture2D::Create({FileSource::EditorAsset, "Textures/texture_checker.png"});
-		m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
+        m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
 		m_StopTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Stop.png"});
 		m_PauseTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Pause.png"});
+
+//        m_Model = Model::CreateModel({FileSource::EditorAsset, "Sniper_Hybbania.gltf"});
 	}
 
 	void EditorLayer::OnAttach()
@@ -115,6 +120,10 @@ namespace Voxymore::Editor {
 
 		m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
 		m_ActiveCamera.AddComponent<CameraComponent>();
+
+        m_ModelEntity = m_ActiveScene->CreateEntity("Model");
+        auto& mc = m_ModelEntity.AddComponent<ModelComponent>();
+        mc.SetPath({FileSource::EditorAsset, "Sniper_Hybbania.gltf"});
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 

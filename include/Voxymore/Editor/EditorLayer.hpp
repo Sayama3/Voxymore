@@ -5,6 +5,7 @@
 #pragma once
 #include "Voxymore/Voxymore.hpp"
 #include "Voxymore/Renderer/Framebuffer.hpp"
+#include "Voxymore/Renderer/Model.hpp"
 #include "Voxymore/Renderer/EditorCamera.hpp"
 #include "Voxymore/Core/PerspectiveCameraController.hpp"
 #include "Voxymore/Editor/Panels/SceneHierarchyPanel.hpp"
@@ -79,6 +80,8 @@ namespace Voxymore::Editor {
         Ref<IndexBuffer> m_SquareIndexBuffer;
 
         Ref<Framebuffer> m_Framebuffer;
+
+        Ref<Model> m_Model;
     private:
         std::array<glm::vec2, 2> m_ViewportBounds;
     private:
@@ -87,6 +90,7 @@ namespace Voxymore::Editor {
         Ref<Scene> m_ActiveScene;
         Entity m_CubeEntity;
         Entity m_TextureEntity;
+        Entity m_ModelEntity;
         Entity m_ActiveCamera;
         Entity m_HoveredEntity;
         std::string m_FilePath;
