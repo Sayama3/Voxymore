@@ -95,6 +95,8 @@ namespace Voxymore::Editor {
         m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
 		m_StopTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Stop.png"});
 		m_PauseTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Pause.png"});
+
+        ShaderLibrary::GetInstance().Load("Default", {FileSource::EditorShader, "DefaultShader.glsl"});
 	}
 
 	void EditorLayer::OnAttach()
@@ -122,7 +124,7 @@ namespace Voxymore::Editor {
         m_ModelEntity = m_ActiveScene->CreateEntity("Model");
         auto& mc = m_ModelEntity.AddComponent<ModelComponent>();
         mc.SetPath({FileSource::EditorAsset, "Sniper_Hybbania.gltf"});
-        mc.SetShader("TextureShader");
+        mc.SetShader("Default");
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
