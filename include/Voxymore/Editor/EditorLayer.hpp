@@ -70,6 +70,7 @@ namespace Voxymore::Editor {
         Ref<Texture2D> m_Texture;
         Ref<Shader> m_TextureShader;
         Ref<Material> m_TextureMaterial;
+        Ref<Shader> m_DefaultShader;
 
         Ref<VertexArray> m_VertexArray;
         Ref<VertexBuffer> m_VertexBuffer;
