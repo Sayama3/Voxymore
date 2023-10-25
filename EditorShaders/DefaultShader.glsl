@@ -200,7 +200,7 @@ void main()
 
     if(materialParameters.PbrMetallicRoughness.BaseColorTexture.Index > -1)
     {
-        o_Color = SampleTexture(materialParameters.PbrMetallicRoughness.BaseColorTexture.Index);
+        o_Color *= SampleTexture(materialParameters.PbrMetallicRoughness.BaseColorTexture.Index);
         if(materialParameters.PbrMetallicRoughness.BaseColorTexture.TexCoord > 0)
         {
             o_Color = vec4(0.8,0.2,0.3,1.0);
