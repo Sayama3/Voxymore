@@ -6,6 +6,7 @@
 #include "Voxymore/Editor/Panels/SystemPanel.hpp"
 #include "Voxymore/Utils/Platform.hpp"
 #include "Voxymore/Scene/SceneManager.hpp"
+#include "Voxymore/Scene/ModelComponent.hpp"
 #include <ImGuizmo.h>
 
 
@@ -80,18 +81,22 @@ namespace Voxymore::Editor {
         m_SquareIndexBuffer = IndexBuffer::Create(std::size(squareIndices), squareIndices);
         m_SquareVertexArray->SetIndexBuffer(m_SquareIndexBuffer);
 
+
+        m_Shader = ShaderLibrary::GetInstance().Load("FlatColor", {FileSource::EditorShader, "FlatColor.glsl"});
+        m_TextureShader = ShaderLibrary::GetInstance().Load("Texture", {FileSource::EditorShader, "TextureShader.glsl"});
+        m_DefaultShader = ShaderLibrary::GetInstance().Load("Default", {FileSource::EditorShader, "DefaultShader.glsl"});
+
         VXM_INFO("Creat FlatColor Material");
-        m_Shader = Shader::Create({FileSource::EditorShader, "FlatColor.glsl"});
         m_Material = CreateRef<Material>(m_Shader);
 
         VXM_INFO("Creat Texture Material");
-        m_TextureShader = Shader::Create({FileSource::EditorShader, "TextureShader.glsl"});
         m_TextureMaterial = CreateRef<Material>(m_TextureShader);
 
         m_Texture = Texture2D::Create({FileSource::EditorAsset, "Textures/texture_checker.png"});
-		m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
+        m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
 		m_StopTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Stop.png"});
 		m_PauseTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Pause.png"});
+
 	}
 
 	void EditorLayer::OnAttach()
@@ -115,6 +120,11 @@ namespace Voxymore::Editor {
 
 		m_ActiveCamera = m_ActiveScene->CreateEntity("Camera");
 		m_ActiveCamera.AddComponent<CameraComponent>();
+
+        m_ModelEntity = m_ActiveScene->CreateEntity("Model");
+        auto& mc = m_ModelEntity.AddComponent<ModelComponent>();
+        mc.SetPath({FileSource::EditorAsset, "BumperTest.gltf"});
+        mc.SetShader("Default");
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -528,7 +538,7 @@ namespace Voxymore::Editor {
 
 	void EditorLayer::OnImGuiRender() {
 		VXM_PROFILE_FUNCTION();
-		RenderDockspace();
+        RenderDockspace();
 
 		m_SceneHierarchyPanel.OnImGuiRender();
 		m_SystemPanel.OnImGuiRender();
