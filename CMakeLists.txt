@@ -39,4 +39,3 @@ target_compile_definitions(Voxengine PUBLIC VXM_USE_SIMPLE_FUNCTION)
 
 message(${CMAKE_BINARY_DIR})
 file(COPY EditorAssets/ DESTINATION ${CMAKE_BINARY_DIR}/EditorAssets/)
-file(COPY EditorShaders/ DESTINATION ${CMAKE_BINARY_DIR}/EditorShaders/)

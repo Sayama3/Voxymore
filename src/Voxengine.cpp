@@ -16,22 +16,14 @@ class Voxengine : public Voxymore::Core::Application {
     };
 }
 
-Voxymore::Core::Application* Voxymore::Core::CreateApplication(int argc, char** argv) {
+Voxymore::Core::Application* Voxymore::Core::CreateApplication(const std::vector<std::string>& arguments) {
     VXM_PROFILE_FUNCTION();
 
-//#if VXM_DEBUG
-//    VXM_TRACE("Create Application with argument :");
-//    for (int i = 0; i < argc; ++i) {
-//        VXM_TRACE("  {0}: {1}",i, argv[i]);
-//    }
-//#endif
-
-    std::filesystem::path exePath = argv[0];
+    std::filesystem::path exePath = arguments[0];
 
     ApplicationParameters parameters;
     parameters.name = "Voxengine";
-    parameters.argc = argc;
-    parameters.argv = argv;
+    parameters.arguments = arguments;
 
     return new Voxymore::Editor::Voxengine(parameters);
 }
