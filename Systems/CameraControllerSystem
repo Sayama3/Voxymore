@@ -1,0 +1,5 @@
+CameraControllerSystem:
+  Enable: true
+  Scenes:
+    - NoName0
+  Speed: 71

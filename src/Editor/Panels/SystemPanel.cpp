@@ -49,7 +49,12 @@ namespace Voxymore::Editor
         {
             ImGui::Text("Scenes");
             ImVec2 tableSize = ImGui::GetContentRegionAvail();
-            if (ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int)tableSize.x % 250, (int)m_SceneNames.size()) : 1 , ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+
+#if VXM_DEBUG
+            if(m_SceneNames.empty()) {VXM_CORE_WARNING("The ::Voxymore::Core::SceneManager is empty...");}
+#endif
+
+            if (!m_SceneNames.empty() && ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int)tableSize.x % 250, (int)m_SceneNames.size()) : 1 , ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (auto &sceneName: m_SceneNames)
                 {
@@ -64,7 +69,11 @@ namespace Voxymore::Editor
                 ImGui::EndTable();
             }
 
-            SystemManager::GetSystem(name)->OnImGuiRender();
+            if(SystemManager::GetSystem(name)->OnImGuiRender())
+            {
+                SystemManager::SaveSystem(name);
+            }
+
             ImGui::TreePop();
         }
     }

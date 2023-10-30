@@ -515,18 +515,35 @@ namespace Voxymore::Editor {
         }
     }
 
+    static uint32_t countNewScene = 0;
     void EditorLayer::CreateNewScene()
     {
+        VXM_CORE_INFO("Unloading and Delete Previous Scene");
+        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetName()))
+        {
+            SceneManager::DeleteScene(m_ActiveScene->GetName());
+            m_ActiveScene = nullptr;
+        }
+
         VXM_CORE_TRACE("Create New Scene");
+        std::string sceneName = "New Scene ";
+        sceneName.append(std::to_string(++countNewScene));
         m_FilePath = "";
-        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene = SceneManager::CreateScene(sceneName);
         m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OpenScene(const std::filesystem::path& path)
     {
-        VXM_CORE_TRACE("Create New Scene");
+        VXM_CORE_INFO("Unloading and Delete Previous Scene");
+        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetName()))
+        {
+            SceneManager::DeleteScene(m_ActiveScene->GetName());
+            m_ActiveScene = nullptr;
+        }
+
+        VXM_CORE_TRACE("Open Scene from path {0}", path.string());
         m_FilePath = path.string();
         m_ActiveScene = SceneManager::CreateScene(path, m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
