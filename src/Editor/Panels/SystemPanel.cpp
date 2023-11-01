@@ -40,8 +40,10 @@ namespace Voxymore::Editor
 
         ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
         bool enable = SystemManager::IsActive(name);
+        bool shouldSave = false;
         if(ImGui::Checkbox("Enable", &enable))
         {
+            shouldSave = true;
             SystemManager::SetActive(name, enable);
         }
 
@@ -61,6 +63,7 @@ namespace Voxymore::Editor
                     bool sceneIsActive = std::find(sysScenes.begin(), sysScenes.end(), sceneName) != sysScenes.end();
                     ImGui::TableNextColumn();
                     bool changed = ImGui::Selectable(sceneName.c_str(), &sceneIsActive); // FIXME-TABLE: Selection overlap
+                    shouldSave |= changed;
                     if (changed) {
                         if (sceneIsActive) SystemManager::AddSceneToSystemIfNotExist(name, sceneName);
                         else SystemManager::RemoveSceneFromSystem(name, sceneName);
@@ -69,12 +72,14 @@ namespace Voxymore::Editor
                 ImGui::EndTable();
             }
 
-            if(SystemManager::GetSystem(name)->OnImGuiRender())
-            {
-                SystemManager::SaveSystem(name);
-            }
+            shouldSave |= SystemManager::GetSystem(name)->OnImGuiRender();
 
             ImGui::TreePop();
+        }
+
+        if(shouldSave)
+        {
+            SystemManager::SaveSystem(name);
         }
     }
 }
