@@ -40,8 +40,10 @@ namespace Voxymore::Editor
 
         ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
         bool enable = SystemManager::IsActive(name);
+        bool shouldSave = false;
         if(ImGui::Checkbox("Enable", &enable))
         {
+            shouldSave = true;
             SystemManager::SetActive(name, enable);
         }
 
@@ -49,13 +51,19 @@ namespace Voxymore::Editor
         {
             ImGui::Text("Scenes");
             ImVec2 tableSize = ImGui::GetContentRegionAvail();
-            if (ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int)tableSize.x % 250, (int)m_SceneNames.size()) : 1 , ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+
+#if VXM_DEBUG
+            if(m_SceneNames.empty()) {VXM_CORE_WARNING("The ::Voxymore::Core::SceneManager is empty...");}
+#endif
+
+            if (!m_SceneNames.empty() && ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int)tableSize.x % 250, (int)m_SceneNames.size()) : 1 , ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (auto &sceneName: m_SceneNames)
                 {
                     bool sceneIsActive = std::find(sysScenes.begin(), sysScenes.end(), sceneName) != sysScenes.end();
                     ImGui::TableNextColumn();
                     bool changed = ImGui::Selectable(sceneName.c_str(), &sceneIsActive); // FIXME-TABLE: Selection overlap
+                    shouldSave |= changed;
                     if (changed) {
                         if (sceneIsActive) SystemManager::AddSceneToSystemIfNotExist(name, sceneName);
                         else SystemManager::RemoveSceneFromSystem(name, sceneName);
@@ -64,8 +72,14 @@ namespace Voxymore::Editor
                 ImGui::EndTable();
             }
 
-            SystemManager::GetSystem(name)->OnImGuiRender();
+            shouldSave |= SystemManager::GetSystem(name)->OnImGuiRender();
+
             ImGui::TreePop();
+        }
+
+        if(shouldSave)
+        {
+            SystemManager::SaveSystem(name);
         }
     }
 }

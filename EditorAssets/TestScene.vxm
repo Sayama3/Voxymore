@@ -9,7 +9,7 @@ Entities:
       EulerRotation: [0, -0.589929342, 0]
       Scale: [0.99999994, 1, 0.99999994]
     ModelComponent:
-      Path: {Source: 1, Path: BumperTest.gltf}
+      Path: {Source: 2, Path: BumperTest.gltf}
       ShaderName: Default
   - Entity: 123456789
     TagComponent:

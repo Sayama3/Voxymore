@@ -56,29 +56,16 @@ namespace Voxymore::Editor {
         WORLD
     };
 
-	enum class SceneState
-	{
-		Edit = 0,
-		Play = 1,
+    enum class SceneState
+    {
+        Edit = 0,
+        Play = 1,
 //		Pause = 2,
-	};
+    };
 
     class EditorLayer : public Layer {
     private:
-        Ref<Shader> m_Shader;
-        Ref<Material> m_Material;
         Ref<Texture2D> m_Texture;
-        Ref<Shader> m_TextureShader;
-        Ref<Material> m_TextureMaterial;
-        Ref<Shader> m_DefaultShader;
-
-        Ref<VertexArray> m_VertexArray;
-        Ref<VertexBuffer> m_VertexBuffer;
-        Ref<IndexBuffer> m_IndexBuffer;
-
-        Ref<VertexArray> m_SquareVertexArray;
-        Ref<VertexBuffer> m_SquareVertexBuffer;
-        Ref<IndexBuffer> m_SquareIndexBuffer;
 
         Ref<Framebuffer> m_Framebuffer;
 
@@ -89,19 +76,15 @@ namespace Voxymore::Editor {
         SceneHierarchyPanel m_SceneHierarchyPanel;
         SystemPanel m_SystemPanel;
         Ref<Scene> m_ActiveScene;
-        Entity m_CubeEntity;
-        Entity m_TextureEntity;
-        Entity m_ModelEntity;
-        Entity m_ActiveCamera;
         Entity m_HoveredEntity;
         std::string m_FilePath;
 
-		// Editor.
+        // Editor.
         EditorCamera m_EditorCamera;
-		SceneState m_SceneState = SceneState::Edit;
-		Ref<Texture2D> m_PlayTexture;
-		Ref<Texture2D> m_StopTexture;
-		Ref<Texture2D> m_PauseTexture;
+        SceneState m_SceneState = SceneState::Edit;
+        Ref<Texture2D> m_PlayTexture;
+        Ref<Texture2D> m_StopTexture;
+        Ref<Texture2D> m_PauseTexture;
     private:
         glm::uvec2 m_ViewportSize = glm::uvec2(0);
         bool m_ViewportFocused;
@@ -135,13 +118,23 @@ namespace Voxymore::Editor {
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMousePressed(MouseButtonPressedEvent& e);
 
+        void NewProject();
+        void OpenProject();
+        void OpenProject(const std::filesystem::path&);
+        void SaveProject();
+        void SaveProjectAs();
+        void SaveProjectAs(const std::filesystem::path& path);
+
+
         void CreateNewScene();
         void SaveSceneAs();
         void SaveScene();
         void OpenScene();
+        void OpenScene(const Path& path);
+        void OpenScene(const std::filesystem::path& path);
 
-		void OnScenePlay();
-		void OnSceneStop();
+        void OnScenePlay();
+        void OnSceneStop();
     };
 
 } // Voxymore
