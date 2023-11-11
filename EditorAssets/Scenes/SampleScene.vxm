@@ -10,6 +10,18 @@ Scene:
         Rotation: [-0.194234356, -0, 0, 0.980955184]
         EulerRotation: [-0.390953749, -0, 0]
         Scale: [1, 1, 1]
+      CameraComponent:
+        Primary: true
+        FixedAspectRatio: false
+        Camera:
+          IsOrthographic: false
+          AspectRatio: 1.14841497
+          OrthographicSize: 10
+          OrthographicNear: -1
+          OrthographicFar: 1
+          PerspectiveVerticalFOV: 1.04719758
+          PerspectiveNear: 0.00999999978
+          PerspectiveFar: 1000
     - Entity: 7934402640759719094
       TagComponent:
         Tag: Cube Color

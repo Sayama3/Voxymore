@@ -5,9 +5,6 @@
 #include "Voxymore/Editor/EditorLayer.hpp"
 #include "Voxymore/Editor/Panels/SystemPanel.hpp"
 #include "Voxymore/Utils/Platform.hpp"
-#include "Voxymore/Scene/SceneManager.hpp"
-#include "Voxymore/Scene/ModelComponent.hpp"
-#include "Voxymore/Assets/Assets.hpp"
 #include <ImGuizmo.h>
 
 
@@ -87,15 +84,6 @@ namespace Voxymore::Editor {
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         }
-
-//        if(m_CameraEnable && !Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
-//        {
-//            m_Camera.SetEnable(m_CameraEnable = false);
-//        }
-//        else if(!m_CameraEnable && Input::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && m_ViewportHovered)
-//        {
-//            m_Camera.SetEnable(m_CameraEnable = true);
-//        }
 
         if(m_SceneState == SceneState::Edit) m_EditorCamera.OnUpdate(timeStep);
 

@@ -7,7 +7,6 @@
 #endif
 
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
-#include "Voxymore/Scene/CustomComponent.hpp"
 #include "imgui_internal.h"
 #include <cstring>
 

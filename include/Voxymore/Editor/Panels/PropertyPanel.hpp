@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Voxymore/Voxymore.hpp>
-#include <Voxymore/Scene/CustomComponent.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 

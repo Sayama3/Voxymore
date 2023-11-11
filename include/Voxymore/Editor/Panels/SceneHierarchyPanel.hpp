@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Voxymore/Voxymore.hpp>
-#include <Voxymore/Scene/Scene.hpp>
 #include <Voxymore/Editor/Panels/PropertyPanel.hpp>
 #include <imgui.h>
 
