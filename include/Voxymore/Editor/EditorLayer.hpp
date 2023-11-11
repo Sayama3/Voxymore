@@ -65,11 +65,8 @@ namespace Voxymore::Editor {
 
     class EditorLayer : public Layer {
     private:
-        Ref<Texture2D> m_Texture;
-
         Ref<Framebuffer> m_Framebuffer;
-
-        Ref<Model> m_Model;
+        Ref<Texture2D> m_Texture;
     private:
         std::array<glm::vec2, 2> m_ViewportBounds;
     private:
@@ -96,6 +93,8 @@ namespace Voxymore::Editor {
         float m_GizmoTranslationSnapValue = 0.5f;
         float m_GizmoRotationSnapValue = 45.0f;
         float m_GizmoScaleSnapValue = 0.5f;
+    private:
+        UUID m_OnProjectReloadId;
     public:
         EditorLayer();
 
@@ -130,11 +129,14 @@ namespace Voxymore::Editor {
         void SaveSceneAs();
         void SaveScene();
         void OpenScene();
+        void OpenScene(UUID id);
         void OpenScene(const Path& path);
         void OpenScene(const std::filesystem::path& path);
 
         void OnScenePlay();
         void OnSceneStop();
+
+        void ReloadAssets();
     };
 
 } // Voxymore

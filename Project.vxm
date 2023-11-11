@@ -1,6 +1,6 @@
 Project:
-  Name: Untitled
+  Name: TestProject
   AssetDirectory: EditorAssets
   CacheDirectory: Cache
   SystemDirectory: Systems
-  StartScene: {Source: 2, Path: "TestScene.vxm"}
+  StartSceneId: 2479769007492436712

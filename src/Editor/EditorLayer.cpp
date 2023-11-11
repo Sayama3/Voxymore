@@ -7,6 +7,7 @@
 #include "Voxymore/Utils/Platform.hpp"
 #include "Voxymore/Scene/SceneManager.hpp"
 #include "Voxymore/Scene/ModelComponent.hpp"
+#include "Voxymore/Assets/Assets.hpp"
 #include <ImGuizmo.h>
 
 
@@ -20,28 +21,12 @@ namespace Voxymore::Editor {
     void EditorLayer::OnAttach()
     {
         VXM_PROFILE_FUNCTION();
-        ShaderLibrary::GetInstance().Load("FlatColor", {FileSource::EditorAsset, "Shaders/FlatColor.glsl"});
-        ShaderLibrary::GetInstance().Load("Texture", {FileSource::EditorAsset, "Shaders/TextureShader.glsl"});
-        ShaderLibrary::GetInstance().Load("Default", {FileSource::EditorAsset, "Shaders/DefaultShader.glsl"});
-
-        m_Texture = Texture2D::Create({FileSource::EditorAsset, "Textures/texture_checker.png"});
-        m_PlayTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Play.png"});
-        m_StopTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Stop.png"});
-        m_PauseTexture = Texture2D::Create({FileSource::EditorAsset, "Images/Pause.png"});
-
-        FramebufferSpecification specification(1280, 720);
-        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth};
-        m_ViewportSize = {specification.Width, specification.Height};
-        m_Framebuffer = Framebuffer::Create(specification);
-
-//        m_ModelEntity = m_ActiveScene->CreateEntity("Model");
-//        auto& mc = m_ModelEntity.AddComponent<ModelComponent>();
-//        mc.SetPath({FileSource::EditorAsset, "BumperTest.gltf"});
-//        mc.SetShader("Default");
 
         auto& imguiLayer = *Application::Get().GetImGuiLayer();
         imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Regular.ttf"}, 18.0f, FontType::Regular, true);
         imguiLayer.AddFont({FileSource::EditorAsset, "fonts/OpenSans/OpenSans-Bold.ttf"}, 18.0f, FontType::Bold);
+
+        m_OnProjectReloadId = Project::AddOnLoad(VXM_BIND_EVENT_FN(ReloadAssets));
 
         std::filesystem::path project;
         if(Application::Get().HasArgument(1))
@@ -67,9 +52,14 @@ namespace Voxymore::Editor {
             }
         }
 
-        if(!Project::GetConfig().startScene.empty())
+        FramebufferSpecification specification(1280, 720);
+        specification.Attachements = {FramebufferTextureFormat::Color, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth};
+        m_ViewportSize = {specification.Width, specification.Height};
+        m_Framebuffer = Framebuffer::Create(specification);
+
+        if(Project::GetConfig().startSceneId.has_value())
         {
-            OpenScene(Project::GetConfig().startScene);
+            OpenScene(Project::GetConfig().startSceneId.value());
         }
         else
         {
@@ -80,6 +70,8 @@ namespace Voxymore::Editor {
     void EditorLayer::OnDetach()
     {
         VXM_PROFILE_FUNCTION();
+
+        Project::RemoveOnLoad(m_OnProjectReloadId);
     }
 
     void EditorLayer::OnUpdate(TimeStep timeStep) {
@@ -468,9 +460,9 @@ namespace Voxymore::Editor {
     {
         if(Project::Load(path))
         {
-            if(!Project::GetConfig().startScene.empty())
+            if(Project::GetConfig().startSceneId.has_value())
             {
-                OpenScene(Project::GetConfig().startScene);
+                OpenScene(Project::GetConfig().startSceneId.value());
             }
             else
             {
@@ -510,42 +502,24 @@ namespace Voxymore::Editor {
             if(serializer.Serialize(file))
             {
                 m_FilePath = file;
-                SceneManager::AddScene(m_ActiveScene);
+                if(!SceneManager::HasScene(m_ActiveScene->GetID())) SceneManager::AddScene(m_ActiveScene);
             }
         }
     }
 
-    static uint32_t countNewScene = 0;
     void EditorLayer::CreateNewScene()
     {
         VXM_CORE_INFO("Unloading and Delete Previous Scene");
-        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetName()))
+        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetID()))
         {
-            SceneManager::DeleteScene(m_ActiveScene->GetName());
+            SceneManager::DeleteScene(m_ActiveScene->GetID());
             m_ActiveScene = nullptr;
         }
 
         VXM_CORE_TRACE("Create New Scene");
-        std::string sceneName = "New Scene ";
-        sceneName.append(std::to_string(++countNewScene));
-        m_FilePath = "";
-        m_ActiveScene = SceneManager::CreateScene(sceneName);
+        m_FilePath = std::string();
+        m_ActiveScene = SceneManager::CreateScene();
         m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-    }
-
-    void EditorLayer::OpenScene(const std::filesystem::path& path)
-    {
-        VXM_CORE_INFO("Unloading and Delete Previous Scene");
-        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetName()))
-        {
-            SceneManager::DeleteScene(m_ActiveScene->GetName());
-            m_ActiveScene = nullptr;
-        }
-
-        VXM_CORE_TRACE("Open Scene from path {0}", path.string());
-        m_FilePath = path.string();
-        m_ActiveScene = SceneManager::CreateScene(path, m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
@@ -580,6 +554,38 @@ namespace Voxymore::Editor {
         {
             OpenScene(path.GetFullPath());
         }
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path& path)
+    {
+        VXM_CORE_INFO("Unloading and Delete Previous Scene");
+        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetID()))
+        {
+            SceneManager::DeleteScene(m_ActiveScene->GetID());
+            m_ActiveScene = nullptr;
+        }
+
+        VXM_CORE_TRACE("Open Scene from path {0}", path.string());
+        m_FilePath = path.string();
+        m_ActiveScene = SceneManager::CreateScene(path, m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OpenScene(UUID id)
+    {
+        VXM_CORE_INFO("Unloading and Delete Previous Scene");
+        if(m_ActiveScene != nullptr && SceneManager::HasScene(m_ActiveScene->GetID()))
+        {
+            SceneManager::DeleteScene(m_ActiveScene->GetID());
+            m_ActiveScene = nullptr;
+        }
+
+        VXM_CORE_ASSERT(SceneManager::HasScene(id), "No scene with the ID '{0}'", id);
+        m_ActiveScene = SceneManager::GetScene(id);
+        m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        //TODO: Get the associated file path.
+        m_FilePath = std::string();
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnImGuiRender() {
@@ -750,6 +756,20 @@ namespace Voxymore::Editor {
     void EditorLayer::OnSceneStop()
     {
         m_SceneState = SceneState::Edit;
+    }
+
+    void EditorLayer::ReloadAssets()
+    {
+        ShaderLibrary::GetInstance().Load("FlatColor", {FileSource::EditorAsset, "Shaders/FlatColor.glsl"});
+        ShaderLibrary::GetInstance().Load("Texture", {FileSource::EditorAsset, "Shaders/TextureShader.glsl"});
+        ShaderLibrary::GetInstance().Load("Default", {FileSource::EditorAsset, "Shaders/DefaultShader.glsl"});
+
+        Assets::ReloadAll();
+
+        m_Texture = Assets::GetTexture({FileSource::EditorAsset, "Textures/texture_checker.png"});
+        m_PlayTexture = Assets::GetTexture({FileSource::EditorAsset, "Images/Play.png"});
+        m_StopTexture = Assets::GetTexture({FileSource::EditorAsset, "Images/Stop.png"});
+        m_PauseTexture = Assets::GetTexture({FileSource::EditorAsset, "Images/Pause.png"});
     }
 } // Voxymore
 // Editor
