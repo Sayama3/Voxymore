@@ -2,6 +2,10 @@
 // Created by ianpo on 25/08/2023.
 //
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "Voxymore/Editor/Panels/PropertyPanel.hpp"
 #include "Voxymore/Scene/CustomComponent.hpp"
 #include "imgui_internal.h"
@@ -21,8 +25,7 @@ namespace Voxymore::Editor {
                 auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
                 const size_t bufferSize = 256;
                 char buffer[bufferSize];
-                memset(buffer, 0, bufferSize);
-                std::strncmp(buffer, tag.c_str(), sizeof(buffer));
+                std::strncpy(buffer, tag.c_str(), sizeof(buffer));
                 if(ImGui::InputText("##Tag", buffer, bufferSize))
                 {
                     tag = std::string(buffer);
