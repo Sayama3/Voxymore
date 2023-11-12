@@ -71,6 +71,7 @@ private:
         static void DrawComponent(Entity entity, const ComponentChecker& component, bool canBeDeleted = true);
 
         void DrawComponents();
+        void DrawAddComponent();
 
         inline Entity GetSelectedEntity() { return m_SelectedEntity; }
         inline void SetSelectedEntity(Entity entity) { m_SelectedEntity = entity; }

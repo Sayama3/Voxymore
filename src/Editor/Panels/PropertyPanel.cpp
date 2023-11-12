@@ -18,7 +18,14 @@ namespace Voxymore::Editor {
         ImGui::Begin("Properties");
         if(m_SelectedEntity.IsValid())
         {
-            //TODO: Add a remove Component button on each component.
+            bool enable = m_SelectedEntity.IsActive();
+            if(ImGui::Checkbox("##Enable", &enable))
+            {
+                m_SelectedEntity.SetActive(enable);
+            }
+
+            ImGui::SameLine();
+
             if (m_SelectedEntity.HasComponent<TagComponent>())
             {
                 auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
@@ -32,38 +39,8 @@ namespace Voxymore::Editor {
             }
 
             ImGui::SameLine();
-            ImGui::PushItemWidth(-1);
 
-            if(ImGui::Button("Add Component")) {
-                ImGui::OpenPopup("AddComponentPopup");
-            }
-
-            ImGui::PopItemWidth();
-            if(ImGui::BeginPopup("AddComponentPopup"))
-            {
-                if(!m_SelectedEntity.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
-                {
-                    auto& newCam = m_SelectedEntity.AddComponent<CameraComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-
-//                if(!m_SelectedEntity.HasComponent<MeshComponent>() && ImGui::MenuItem("Mesh Component"))
-//                {
-//                    m_SelectedEntity.AddComponent<MeshComponent>();
-//                    ImGui::CloseCurrentPopup();
-//                }
-
-                for (const ComponentChecker& cc : ComponentManager::GetComponents())
-                {
-                    if(!cc.HasComponent(m_SelectedEntity) && ImGui::MenuItem(cc.ComponentName.c_str()))
-                    {
-                        cc.AddComponent(m_SelectedEntity);
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-
-                ImGui::EndPopup();
-            }
+            DrawAddComponent();
 
             DrawComponents();
         }
@@ -184,7 +161,7 @@ namespace Voxymore::Editor {
 
                 bool removeComponent = false;
                 ImGui::SameLine(contentAvailable.x - lineHeight * 0.5f);
-                if(ImGui::Button("+", ImVec2(lineHeight, lineHeight)))
+                if(ImGui::Button("-", ImVec2(lineHeight, lineHeight)))
                 {
                     ImGui::OpenPopup("ComponentSettings");
                 }
@@ -211,6 +188,43 @@ namespace Voxymore::Editor {
 
         }
 
+
+    void PropertyPanel::DrawAddComponent()
+    {
+        ImGui::PushItemWidth(-1);
+
+        ImVec2 available = ImGui::GetContentRegionAvail();
+        if(ImGui::Button("Add Component", ImVec2(available.x,24))) {
+            ImGui::OpenPopup("AddComponentPopup");
+        }
+
+        ImGui::PopItemWidth();
+        if(ImGui::BeginPopup("AddComponentPopup"))
+        {
+            if(!m_SelectedEntity.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
+            {
+                auto& newCam = m_SelectedEntity.AddComponent<CameraComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
+    //                if(!m_SelectedEntity.HasComponent<MeshComponent>() && ImGui::MenuItem("Mesh Component"))
+    //                {
+    //                    m_SelectedEntity.AddComponent<MeshComponent>();
+    //                    ImGui::CloseCurrentPopup();
+    //                }
+
+            for (const ComponentChecker& cc : ComponentManager::GetComponents())
+            {
+                if(!cc.HasComponent(m_SelectedEntity) && ImGui::MenuItem(cc.ComponentName.c_str()))
+                {
+                    cc.AddComponent(m_SelectedEntity);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+    }
 
 
 } // Voxymore

@@ -2,7 +2,44 @@ Scene:
   Name: Scene_2479769007492436712
   UUID: 2479769007492436712
   Entities:
+    - Entity: 6197672930199883822
+      IsActive: true
+      TagComponent:
+        Tag: Cube black
+      TransformComponent:
+        Position: [-3.09039021, 0, 0]
+        Rotation: [0, 0, 0, 1]
+        EulerRotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      ModelComponent:
+        Path: {Source: 2, Path: Models/Cube_B.glb}
+        ShaderName: Default
+    - Entity: 7275291884409962700
+      IsActive: true
+      TagComponent:
+        Tag: Cube White
+      TransformComponent:
+        Position: [3.24788237, 0, 0]
+        Rotation: [0, 0, 0, 1]
+        EulerRotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      ModelComponent:
+        Path: {Source: 2, Path: Models/Cube_W.glb}
+        ShaderName: Default
+    - Entity: 7934402640759719094
+      IsActive: true
+      TagComponent:
+        Tag: Cube Color
+      TransformComponent:
+        Position: [0, 0, 0]
+        Rotation: [0, 0, 0, 1]
+        EulerRotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      ModelComponent:
+        Path: {Source: 2, Path: Models/Cube_Color.gltf}
+        ShaderName: Default
     - Entity: 1514572497277624835
+      IsActive: true
       TagComponent:
         Tag: Camera
       TransformComponent:
@@ -22,36 +59,3 @@ Scene:
           PerspectiveVerticalFOV: 1.04719758
           PerspectiveNear: 0.00999999978
           PerspectiveFar: 1000
-    - Entity: 7934402640759719094
-      TagComponent:
-        Tag: Cube Color
-      TransformComponent:
-        Position: [0, 0, 0]
-        Rotation: [0, 0, 0, 1]
-        EulerRotation: [0, 0, 0]
-        Scale: [1, 1, 1]
-      ModelComponent:
-        Path: {Source: 2, Path: Models/Cube_Color.gltf}
-        ShaderName: Default
-    - Entity: 7275291884409962700
-      TagComponent:
-        Tag: Cube White
-      TransformComponent:
-        Position: [3.24788237, 0, 0]
-        Rotation: [0, 0, 0, 1]
-        EulerRotation: [0, -0, 0]
-        Scale: [1, 1, 1]
-      ModelComponent:
-        Path: {Source: 2, Path: Models/Cube_W.glb}
-        ShaderName: Default
-    - Entity: 6197672930199883822
-      TagComponent:
-        Tag: Cube black
-      TransformComponent:
-        Position: [-3.09039021, 0, 0]
-        Rotation: [0, 0, 0, 1]
-        EulerRotation: [0, -0, 0]
-        Scale: [1, 1, 1]
-      ModelComponent:
-        Path: {Source: 2, Path: Models/Cube_B.glb}
-        ShaderName: Default
