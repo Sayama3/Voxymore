@@ -10,6 +10,7 @@ namespace Voxymore::Editor
     {
 private:
         std::vector<std::string> m_SceneNames;
+        std::vector<UUID> m_SceneIds;
         void DrawSystem(const std::string& systemName);
 public:
         void OnImGuiRender();
