@@ -71,6 +71,7 @@ namespace Voxymore::Editor {
         Project::RemoveOnLoad(m_OnProjectReloadId);
     }
 
+    //TODO: Pause the update when m_SceneState == SceneState::Pause
     void EditorLayer::OnUpdate(TimeStep timeStep) {
         VXM_PROFILE_FUNCTION();
 
@@ -280,7 +281,7 @@ namespace Voxymore::Editor {
 
     void EditorLayer::RenderMenuBar()
     {
-        if (ImGui::BeginMenu("Project")) {
+        if (m_SceneState == SceneState::Edit && ImGui::BeginMenu("Project")) {
             if (ImGui::MenuItem("New")) {
                 NewProject();
             }
@@ -299,7 +300,7 @@ namespace Voxymore::Editor {
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Scene")) {
+        if (m_SceneState == SceneState::Edit && ImGui::BeginMenu("Scene")) {
             if (ImGui::MenuItem("New", "Ctr+N")) {
                 CreateNewScene();
             }
@@ -481,6 +482,11 @@ namespace Voxymore::Editor {
 
     void EditorLayer::SaveSceneAs()
     {
+        if(m_SceneState != SceneState::Edit)
+        {
+            VXM_CORE_WARNING("Cannot save the scene if we are not in edit mode.");
+            return;
+        }
         VXM_CORE_TRACE("Save Scene As");
         std::string file = FileDialogs::SaveFile({"Voxymore Scene (*.vxm)", "*.vxm"});
         if(!file.empty())
@@ -513,6 +519,11 @@ namespace Voxymore::Editor {
 
     void EditorLayer::SaveScene()
     {
+        if(m_SceneState != SceneState::Edit)
+        {
+            VXM_CORE_WARNING("Cannot save the scene if we are not in edit mode.");
+            return;
+        }
         if(!m_FilePath.empty())
         {
             VXM_CORE_TRACE("Save Scene");
@@ -738,12 +749,31 @@ namespace Voxymore::Editor {
 
     void EditorLayer::OnScenePlay()
     {
+        if(m_SceneState == SceneState::Play) return;
         m_SceneState = SceneState::Play;
+        m_CacheScene = m_ActiveScene;
+        m_ActiveScene = CreateRef<Scene>(m_CacheScene);
+
+        m_CacheFilePath = m_FilePath;
+        m_FilePath = "";
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
     }
 
     void EditorLayer::OnSceneStop()
     {
+        if(m_SceneState == SceneState::Edit) return;
         m_SceneState = SceneState::Edit;
+
+        m_ActiveScene = m_CacheScene;
+        m_CacheScene = nullptr;
+
+        m_FilePath = m_CacheFilePath;
+        m_CacheFilePath = "";
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
     }
 
     void EditorLayer::ReloadAssets()

@@ -73,8 +73,10 @@ namespace Voxymore::Editor {
         SceneHierarchyPanel m_SceneHierarchyPanel;
         SystemPanel m_SystemPanel;
         Ref<Scene> m_ActiveScene;
+        Ref<Scene> m_CacheScene = nullptr;
         Entity m_HoveredEntity;
         std::string m_FilePath;
+        std::string m_CacheFilePath;
 
         // Editor.
         EditorCamera m_EditorCamera;
