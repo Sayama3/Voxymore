@@ -31,7 +31,8 @@ namespace Voxymore::Editor {
                 auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
                 const size_t bufferSize = 256;
                 char buffer[bufferSize];
-                std::strncpy(buffer, tag.c_str(), sizeof(buffer));
+                buffer[bufferSize-1] = 0;
+                std::strncpy(buffer, tag.c_str(), sizeof(buffer)-1);
                 if(ImGui::InputText("##Tag", buffer, bufferSize))
                 {
                     tag = std::string(buffer);

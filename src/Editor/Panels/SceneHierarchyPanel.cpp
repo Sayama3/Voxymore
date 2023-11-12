@@ -2,6 +2,10 @@
 // Created by ianpo on 25/08/2023.
 //
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "Voxymore/Editor/Panels/SceneHierarchyPanel.hpp"
 
 
@@ -19,6 +23,27 @@ namespace Voxymore::Editor {
     void SceneHierarchyPanel::OnImGuiRender()
     {
         ImGui::Begin("Hierarchy");
+
+
+        {
+            std::string idstr = std::to_string(m_Context->m_ID);
+            ImGui::Text("%s", idstr.c_str());
+        }
+
+        ImGui::SameLine();
+
+        {
+            const size_t bufferSize = 256;
+            char buffer[bufferSize];
+            buffer[bufferSize - 1] = 0;
+            std::strncpy(buffer, m_Context->m_Name.c_str(), sizeof(buffer) - 1);
+            if (ImGui::InputText("##SceneName", buffer, bufferSize)) {
+                m_Context->m_Name = buffer;
+            }
+        }
+
+        ImGui::Separator();
+
         auto transformView = m_Context->m_Registry.view<TagComponent>();
         for (auto entity : transformView)
         {
