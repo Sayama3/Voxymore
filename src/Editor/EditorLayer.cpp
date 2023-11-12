@@ -764,13 +764,14 @@ namespace Voxymore::Editor {
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ActiveScene->StartScene();
     }
 
     void EditorLayer::OnSceneStop()
     {
         if(m_SceneState == SceneState::Edit) return;
         m_SceneState = SceneState::Edit;
-
+        m_CacheScene->StopScene();
         m_ActiveScene = m_CacheScene;
         m_CacheScene = nullptr;
 
