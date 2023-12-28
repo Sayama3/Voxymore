@@ -38,4 +38,11 @@ target_compile_definitions(Voxengine PUBLIC VXM_USE_SIMPLE_FUNCTION)
 configure_file(imgui.ini ${CMAKE_BINARY_DIR}/imgui.ini NO_SOURCE_PERMISSIONS COPYONLY)
 
 message(${CMAKE_BINARY_DIR})
-file(COPY EditorAssets/ DESTINATION ${CMAKE_BINARY_DIR}/EditorAssets/)
+#file(COPY EditorAssets/ DESTINATION ${CMAKE_BINARY_DIR}/EditorAssets/)
+file(CREATE_LINK ${CMAKE_CURRENT_SOURCE_DIR}/EditorAssets/ ${CMAKE_BINARY_DIR}/EditorAssets/ RESULT copy_result COPY_ON_ERROR SYMBOLIC)
+if(NOT (copy_result EQUAL 0))
+    message(WARNING
+            "Copy made instead of symlink.\n"
+            "${copy_result}"
+    )
+endif()

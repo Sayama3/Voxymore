@@ -1,5 +1,6 @@
 #define __TYPE_VERTEX_SHADER__
 #version 450 core
+
 struct TextureInfo
 {
     int Index;
@@ -78,6 +79,7 @@ void main()
 
 #define __TYPE_FRAGMENT_SHADER__
 #version 450 core
+
 struct TextureInfo
 {
     int Index;
