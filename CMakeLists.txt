@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 # set enable the debugger (when the debug mode is enable?)
 if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
-    if(NOT MSVC)
+    if(NOT (MSVC EQUAL "true"))
         set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g")
     endif()
 endif()
