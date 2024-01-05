@@ -1,3 +1,4 @@
 [submodule "lib/VoxymoreCore"]
 	path = lib/VoxymoreCore
 	url = https://github.com/Sayama3/VoxymoreCore
+	branch = Physics
