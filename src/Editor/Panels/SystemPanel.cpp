@@ -7,6 +7,7 @@ namespace Voxymore::Editor
 {
     void SystemPanel::OnImGuiRender()
     {
+		VXM_PROFILE_FUNCTION();
         m_SceneIds = SceneManager::GetSceneIds();
         m_SceneNames.clear();
         m_SceneNames.reserve(m_SceneIds.size());
@@ -26,6 +27,7 @@ namespace Voxymore::Editor
 
     void SystemPanel::DrawSystem(const std::string &name)
     {
+		VXM_PROFILE_FUNCTION();
         std::hash<std::string> strHash;
         uint64_t hash = strHash(name);
         const ImGuiTreeNodeFlags treeNodeFlags =
