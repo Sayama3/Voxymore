@@ -16,12 +16,27 @@ namespace Voxymore::Editor {
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene> &scene)
     {
-        m_PropertyPanel.m_SelectedEntity = {};
-        m_Context = scene;
+		VXM_PROFILE_FUNCTION();
+		if(m_PropertyPanel.m_SelectedEntity)
+		{
+			auto id = m_PropertyPanel.m_SelectedEntity.GetUUID();
+			auto e = scene->GetEntity(id);
+			if(e.IsValid())
+			{
+				m_PropertyPanel.m_SelectedEntity = e;
+			}
+		}
+		else
+		{
+			m_PropertyPanel.m_SelectedEntity = {};
+		}
+		m_Context = scene;
+
     }
 
     void SceneHierarchyPanel::OnImGuiRender()
     {
+		VXM_PROFILE_FUNCTION();
         ImGui::Begin("Hierarchy");
 
 
@@ -62,10 +77,7 @@ namespace Voxymore::Editor {
         // Right click on blank space
         if(ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
         {
-            if(ImGui::MenuItem("Create Empty Entity"))
-            {
-                m_Context->CreateEntity();
-            }
+			DrawHierarchyOptions();
             ImGui::EndPopup();
         }
 
@@ -74,8 +86,34 @@ namespace Voxymore::Editor {
         m_PropertyPanel.OnImGuiRender();
     }
 
+	void SceneHierarchyPanel::DrawHierarchyOptions()
+	{
+		VXM_PROFILE_FUNCTION();
+		if(ImGui::MenuItem("Create Empty Entity"))
+		{
+			auto e = m_Context->CreateEntity();
+			m_PropertyPanel.m_SelectedEntity = e;
+		}
+
+		if(ImGui::MenuItem("Create Camera"))
+		{
+			auto e = m_Context->CreateEntity("Camera");
+			e.AddComponent<CameraComponent>();
+			m_PropertyPanel.m_SelectedEntity = e;
+		}
+
+		if(ImGui::MenuItem("Create Cube"))
+		{
+			auto e = m_Context->CreateEntity("Cube");
+			e.AddComponent<PrimitiveComponent>(Primitive::Type::Cube);
+			e.AddComponent<ParticleComponent>();
+			m_PropertyPanel.m_SelectedEntity = e;
+		}
+	}
+
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
+		VXM_PROFILE_FUNCTION();
         auto& tag = entity.GetComponent<TagComponent>().Tag;
         void* EntityID = (void*)(uint64_t)(uint32_t)entity;
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;

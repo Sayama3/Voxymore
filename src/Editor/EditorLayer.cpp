@@ -156,7 +156,7 @@ namespace Voxymore::Editor {
 
     void EditorLayer::RenderDockspace()
     {
-        VXM_PROFILE_SCOPE("EditorLayer::OnImGuiRender -> Dockspace");
+		VXM_PROFILE_FUNCTION();
         // READ THIS !!!
         // TL;DR; this demo is more complicated than what most users you would normally use.
         // If we remove all options we are showcasing, this demo would become:
@@ -765,6 +765,11 @@ namespace Voxymore::Editor {
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_ActiveScene->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_ActiveScene->StartScene();
+		auto& app = Application::Get();
+		if(app.HasPhysicsLayer())
+		{
+			app.GetPhysicsLayer()->SetScene(m_ActiveScene);
+		}
     }
 
     void EditorLayer::OnSceneStop()
@@ -772,6 +777,11 @@ namespace Voxymore::Editor {
         if(m_SceneState == SceneState::Edit) return;
         m_SceneState = SceneState::Edit;
         m_CacheScene->StopScene();
+		auto& app = Application::Get();
+		if(app.HasPhysicsLayer())
+		{
+			app.GetPhysicsLayer()->ResetScene();
+		}
         m_ActiveScene = m_CacheScene;
         m_CacheScene = nullptr;
 

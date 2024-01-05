@@ -25,6 +25,7 @@ namespace Voxymore::Editor {
         inline void SetSelectedEntity(Entity entity) {m_PropertyPanel.SetSelectedEntity(entity); }
     private:
         void DrawEntityNode(Entity entity);
+		void DrawHierarchyOptions();
     private:
         Ref<Scene> m_Context;
 //        Entity m_SelectionContext;
