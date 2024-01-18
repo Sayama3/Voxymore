@@ -20,7 +20,6 @@ namespace Voxymore::Editor
         for (const auto& name : systemNames)
         {
             DrawSystem(name);
-            ImGui::Separator();
         }
         ImGui::End();
     }
@@ -57,33 +56,34 @@ namespace Voxymore::Editor
 
         if(open)
         {
-            ImGui::Text("Scenes");
-            ImVec2 tableSize = ImGui::GetContentRegionAvail();
+			auto sys = SystemManager::GetSystem(name);
+			if(!sys->RunOnAllScenes()) {
+				ImGui::Text("Scenes");
+				ImVec2 tableSize = ImGui::GetContentRegionAvail();
 
-#if VXM_DEBUG
-            if(m_SceneIds.empty()) {VXM_CORE_WARNING("The ::Voxymore::Core::SceneManager is empty...");}
-#endif
+				VXM_CHECK(!m_SceneIds.empty(), "The ::Voxymore::Core::SceneManager is empty...");
 
-            if (!m_SceneIds.empty() && ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int)tableSize.x % 250, (int)m_SceneNames.size()) : 1 , ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
-            {
-                for (int i = 0; i < m_SceneIds.size(); ++i)
-                {
-                    std::string& sceneName = m_SceneNames[i];
-                    UUID sceneId = m_SceneIds[i];
+				if (!m_SceneIds.empty() && ImGui::BeginTable("##ScenesTable", tableSize.x > 0 ? glm::min((int) tableSize.x % 250, (int) m_SceneNames.size()) : 1, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+				{
+					for (int i = 0; i < m_SceneIds.size(); ++i)
+					{
+						std::string& sceneName = m_SceneNames[i];
+						UUID sceneId = m_SceneIds[i];
 
-                    bool sceneIsActive = std::find(sysScenes.begin(), sysScenes.end(), sceneId) != sysScenes.end();
-                    ImGui::TableNextColumn();
-                    bool changed = ImGui::Selectable(sceneName.c_str(), &sceneIsActive); // FIXME-TABLE: Selection overlap
-                    shouldSave |= changed;
-                    if (changed) {
-                        if (sceneIsActive) SystemManager::AddSceneToSystemIfNotExist(name, sceneId);
-                        else SystemManager::RemoveSceneFromSystem(name, sceneId);
-                    }
-                }
-                ImGui::EndTable();
-            }
+						bool sceneIsActive = std::find(sysScenes.begin(), sysScenes.end(), sceneId) != sysScenes.end();
+						ImGui::TableNextColumn();
+						bool changed = ImGui::Selectable(sceneName.c_str(), &sceneIsActive); // FIXME-TABLE: Selection overlap
+						shouldSave |= changed;
+						if (changed) {
+							if (sceneIsActive) SystemManager::AddSceneToSystemIfNotExist(name, sceneId);
+							else SystemManager::RemoveSceneFromSystem(name, sceneId);
+						}
+					}
+					ImGui::EndTable();
+				}
+			}
 
-            shouldSave |= SystemManager::GetSystem(name)->OnImGuiRender();
+            shouldSave |= sys->OnImGuiRender();
 
             ImGui::TreePop();
         }

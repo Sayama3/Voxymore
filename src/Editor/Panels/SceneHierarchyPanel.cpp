@@ -134,6 +134,11 @@ namespace Voxymore::Editor {
             {
                 deleteEntity = true;
             }
+            if(ImGui::MenuItem(std::string("Copy '").append(tag).append("' id").c_str()))
+            {
+				auto id = entity.id();
+				Clipboard::Set(std::to_string(entity.scene_id())+","+std::to_string(id)+","+tag);
+            }
             ImGui::EndPopup();
         }
 
