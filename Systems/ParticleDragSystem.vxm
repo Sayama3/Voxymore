@@ -1,0 +1,7 @@
+ParticleDragSystem:
+  Enable: false
+  Scenes:
+    []
+  UUID: 0
+  DragCoef: 0.00999999978
+  DragCoefSqr: 0.200000003

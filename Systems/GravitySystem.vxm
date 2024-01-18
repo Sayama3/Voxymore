@@ -1,0 +1,6 @@
+GravitySystem:
+  Enable: true
+  Scenes:
+    []
+  UUID: 0
+  Gravity: [0, -9.81000042, 0]
