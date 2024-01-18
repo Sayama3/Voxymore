@@ -97,14 +97,16 @@ namespace Voxymore::Editor {
 
 		if(ImGui::MenuItem("Create Camera"))
 		{
-			auto e = m_Context->CreateEntity("Camera");
+			static uint64_t entityCameraCount = 0;
+			auto e = m_Context->CreateEntity("Camera - " + std::to_string(entityCameraCount++));
 			e.AddComponent<CameraComponent>();
 			m_PropertyPanel.m_SelectedEntity = e;
 		}
 
 		if(ImGui::MenuItem("Create Cube"))
 		{
-			auto e = m_Context->CreateEntity("Cube");
+			static uint64_t entityCubeCount = 0;
+			auto e = m_Context->CreateEntity("Cube - " + std::to_string(entityCubeCount++));
 			e.AddComponent<PrimitiveComponent>(Primitive::Type::Cube);
 			e.AddComponent<ParticleComponent>();
 			m_PropertyPanel.m_SelectedEntity = e;
