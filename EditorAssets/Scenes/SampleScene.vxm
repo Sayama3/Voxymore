@@ -1,28 +1,43 @@
 Scene:
-  Name: Sample Scene
+  Name: Spring_Test_Scene
   UUID: 2479769007492436712
   Entities:
-    - Entity: 1514572497277624835
+    - Entity: 6197672930199883822
       IsActive: true
       TagComponent:
-        Tag: Camera
+        Tag: Cube black
       TransformComponent:
-        Position: [0, 5.07878113, 10.9861917]
-        Rotation: [-0.194234639, 0, 0, 0.980955064]
-        EulerRotation: [-0.390954375, 0, 0]
-        Scale: [1, 0.999999881, 0.999999881]
-      CameraComponent:
-        Primary: true
-        FixedAspectRatio: false
-        Camera:
-          IsOrthographic: false
-          AspectRatio: 1.01585019
-          OrthographicSize: 10
-          OrthographicNear: -1
-          OrthographicFar: 1
-          PerspectiveVerticalFOV: 1.04719758
-          PerspectiveNear: 0.00999999978
-          PerspectiveFar: 1000
+        Position: [-5, -6.00703061e-08, -2.5]
+        Rotation: [0, 0, 0, 1]
+        EulerRotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      ParticleComponent:
+        Position: [0, 0, 0]
+        Acceleration: [0, -10, 0]
+        Velocity: [5, 0, 50]
+        Damping: 0.600000024
+        InverseMass: 1
+      ModelComponent:
+        Path: {Source: 2, Path: Models/Cube_B.glb}
+        ShaderName: Default
+    - Entity: 7275291884409962700
+      IsActive: true
+      TagComponent:
+        Tag: Cube White
+      TransformComponent:
+        Position: [5, 0, 2.5]
+        Rotation: [0, 0, 0, 1]
+        EulerRotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      ParticleComponent:
+        Position: [0, 0, 0]
+        Acceleration: [0, -10, 0]
+        Velocity: [-5, 0, -50]
+        Damping: 0.600000024
+        InverseMass: 1
+      ModelComponent:
+        Path: {Source: 2, Path: Models/Cube_W.glb}
+        ShaderName: Default
     - Entity: 7934402640759719094
       IsActive: true
       TagComponent:
@@ -46,39 +61,24 @@ Scene:
       ModelComponent:
         Path: {Source: 2, Path: Models/Cube_Color.gltf}
         ShaderName: Default
-    - Entity: 7275291884409962700
+    - Entity: 1514572497277624835
       IsActive: true
       TagComponent:
-        Tag: Cube White
+        Tag: Camera
       TransformComponent:
-        Position: [5, 0, 2.5]
-        Rotation: [0, 0, 0, 1]
-        EulerRotation: [0, -0, 0]
-        Scale: [1, 1, 1]
-      ParticleComponent:
-        Position: [0, 0, 0]
-        Acceleration: [0, 0, -5]
-        Velocity: [0, 0, 0]
-        Damping: 0.980000019
-        InverseMass: 1
-      ModelComponent:
-        Path: {Source: 2, Path: Models/Cube_W.glb}
-        ShaderName: Default
-    - Entity: 6197672930199883822
-      IsActive: true
-      TagComponent:
-        Tag: Cube black
-      TransformComponent:
-        Position: [-5, -6.00703061e-08, -2.5]
-        Rotation: [0, 0, 0, 1]
-        EulerRotation: [0, -0, 0]
-        Scale: [1, 1, 1]
-      ParticleComponent:
-        Position: [0, 0, 0]
-        Acceleration: [0, 0, 5]
-        Velocity: [0, 0, 0]
-        Damping: 0.99000001
-        InverseMass: 1
-      ModelComponent:
-        Path: {Source: 2, Path: Models/Cube_B.glb}
-        ShaderName: Default
+        Position: [0, 10, 20]
+        Rotation: [-0.194234639, 0, 0, 0.980955064]
+        EulerRotation: [-0.390954375, 0, 0]
+        Scale: [1, 0.999999881, 0.999999881]
+      CameraComponent:
+        Primary: true
+        FixedAspectRatio: false
+        Camera:
+          IsOrthographic: false
+          AspectRatio: 1.14841497
+          OrthographicSize: 10
+          OrthographicNear: -1
+          OrthographicFar: 1
+          PerspectiveVerticalFOV: 1.04719758
+          PerspectiveNear: 0.00999999978
+          PerspectiveFar: 1000

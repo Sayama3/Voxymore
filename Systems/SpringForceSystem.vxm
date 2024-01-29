@@ -1,5 +1,5 @@
 SpringForceSystem:
-  Enable: false
+  Enable: true
   Scenes:
     []
   UUID: 0
